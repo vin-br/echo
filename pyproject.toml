@@ -12,11 +12,8 @@ dependencies = []
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["backend*", "frontend*", "models*"]
+include = ["backend*", "frontend*", "models*", "modules*"]
 exclude = ["legacy*"]
-
-[tool.setuptools]
-py-modules = ["paths"]
 
 [tool.black]
 line-length = 100
