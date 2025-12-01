@@ -15,6 +15,8 @@ STATIC_DIR = FRONTEND_DIR / "static"
 # Models and metadata
 MODELS_DIR = PROJECT_ROOT / "models"
 CHECKPOINTS_DIR = MODELS_DIR / "checkpoints"
+RESULTS_DIR = MODELS_DIR / "results"
+LOGS_DIR = MODELS_DIR / "logs"
 MODEL_PATH = CHECKPOINTS_DIR / "convnext-tiny-b16-img224-e40-lr-5e-4.pt"
 
 # Data directories
@@ -60,6 +62,9 @@ __all__ = [
     "TEMPLATES_DIR",
     "STATIC_DIR",
     "MODELS_DIR",
+    "CHECKPOINTS_DIR",
+    "RESULTS_DIR",
+    "LOGS_DIR",
     "MODEL_PATH",
     "DATA_DIR",
     "TRAINING_DATASET",
