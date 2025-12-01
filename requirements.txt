@@ -2,7 +2,7 @@ annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.11.0
 appnope==0.1.4
--e git+ssh://git@gitlab.com/vin-br/arc.git@3de36f329516054564bc3c64ecb8e4ae1a6cc396#egg=arc
+-e git+ssh://git@gitlab.com/vin-br/arc.git@490f9ef137371eb0b52f4096ceadda78725ba46f#egg=arc
 asttokens==3.0.1
 attrs==25.4.0
 certifi==2025.11.12

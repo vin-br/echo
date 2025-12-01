@@ -14,7 +14,8 @@ STATIC_DIR = FRONTEND_DIR / "static"
 
 # Models and metadata
 MODELS_DIR = PROJECT_ROOT / "models"
-MODEL_PATH = MODELS_DIR / "ResNet50V2-32.keras"
+CHECKPOINTS_DIR = MODELS_DIR / "checkpoints"
+MODEL_PATH = CHECKPOINTS_DIR / "convnext-tiny-b16-img224-e40-lr-5e-4.pt"
 
 # Data directories
 DATA_DIR = PROJECT_ROOT / "data"
