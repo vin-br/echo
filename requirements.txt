@@ -2,7 +2,7 @@ annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.11.0
 appnope==0.1.4
--e git+ssh://git@gitlab.com/vin-br/arc.git@e97eba93b8dc9bab5725ef32e63355ffa1612ac3#egg=arc
+-e git+ssh://git@gitlab.com/vin-br/arc.git@3de36f329516054564bc3c64ecb8e4ae1a6cc396#egg=arc
 asttokens==3.0.1
 attrs==25.4.0
 certifi==2025.11.12
@@ -50,6 +50,8 @@ pexpect==4.9.0
 pillow==12.0.0
 platformdirs==4.5.0
 plotly==6.5.0
+polars==1.35.2
+polars-runtime-32==1.35.2
 prompt_toolkit==3.0.52
 psutil==7.1.3
 ptyprocess==0.7.0
