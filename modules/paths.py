@@ -15,17 +15,11 @@ STATIC_DIR = FRONTEND_DIR / "static"
 # Models and metadata
 MODELS_DIR = PROJECT_ROOT / "models"
 MODEL_PATH = MODELS_DIR / "ResNet50V2-32.keras"
-CLASSES_PATH = MODELS_DIR / "classes.json"
 
 # Data directories
 DATA_DIR = PROJECT_ROOT / "data"
-BRAIN_DATASET_DIR = DATA_DIR / "brain_dataset"
-COMBINED_DIR = DATA_DIR / "combined"
-
-TRAINING_DATASET = BRAIN_DATASET_DIR / "training"
-TESTING_DATASET = BRAIN_DATASET_DIR / "testing"
-COMBINED_TRAINING_DATASET = COMBINED_DIR / "training"
-COMBINED_TESTING_DATASET = COMBINED_DIR / "testing"
+TRAINING_DATASET = DATA_DIR / "training"
+TESTING_DATASET = DATA_DIR / "testing"
 
 
 def verify_paths() -> None:
@@ -36,16 +30,9 @@ def verify_paths() -> None:
         "FRONTEND_DIR": FRONTEND_DIR,
         "TEMPLATES_DIR": TEMPLATES_DIR,
         "STATIC_DIR": STATIC_DIR,
-        "BRAIN_DATASET_DIR": BRAIN_DATASET_DIR,
-        "COMBINED_DIR": COMBINED_DIR,
-        "TRAINING_DATASET": TRAINING_DATASET,
-        "TESTING_DATASET": TESTING_DATASET,
-        "COMBINED_TRAINING_DATASET": COMBINED_TRAINING_DATASET,
-        "COMBINED_TESTING_DATASET": COMBINED_TESTING_DATASET,
     }
     required_files = {
         "MODEL_PATH": MODEL_PATH,
-        "CLASSES_PATH": CLASSES_PATH,
     }
 
     missing = []
@@ -73,13 +60,8 @@ __all__ = [
     "STATIC_DIR",
     "MODELS_DIR",
     "MODEL_PATH",
-    "CLASSES_PATH",
     "DATA_DIR",
-    "BRAIN_DATASET_DIR",
-    "COMBINED_DIR",
     "TRAINING_DATASET",
     "TESTING_DATASET",
-    "COMBINED_TRAINING_DATASET",
-    "COMBINED_TESTING_DATASET",
     "verify_paths",
 ]
