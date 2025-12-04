@@ -8,9 +8,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 # from .load_model import get_model
-from paths import STATIC_DIR, TEMPLATES_DIR, verify_paths
+from modules.paths import STATIC_DIR, TEMPLATES_DIR, verify_paths
 
-# Verify necessary paths exist from paths module at root
+# Verify necessary paths exist from modules package
 verify_paths()
 
 # Initialize Jinja2 templates
