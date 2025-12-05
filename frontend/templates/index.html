@@ -47,7 +47,7 @@
                     </div>
                     <p class="card-badge">IN DEVELOPMENT</p>
                 </div>
-                <form id="upload-form" method="post" enctype="multipart/form-data">
+                <form id="upload-form" method="post" action="/" enctype="multipart/form-data">
                     <div class="upload-dropzone">
                         <input type="file" name="file1" id="file1">
                         <label for="file1">
@@ -57,8 +57,11 @@
                     </div>
                     <button class="primary-action" type="submit" id="submit-button">Ask ARC</button>
                     <div id="selection-status" class="selection-status" aria-live="polite"></div>
-                    <div id="alert" class="alert hidden" role="alert" aria-live="assertive">
-                        <span id="alert-text"></span>
+                    {% set active_message = messages[0] if messages else None %}
+                    <div id="alert"
+                        class="alert {% if active_message %}alert--{{ active_message.level }}{% else %}hidden{% endif %}"
+                        role="alert" aria-live="assertive">
+                        <span id="alert-text">{% if active_message %}{{ active_message.text }}{% endif %}</span>
                         <button type="button" id="alert-close" class="alert-close" aria-label="Dismiss">&times;</button>
                     </div>
                 </form>
@@ -68,7 +71,12 @@
                         {% if yolo %}
                         <img src="data:image/jpeg;base64,{{ annotated_image }}" />
                         {% endif %}
-                        <p>IRMA predicts {{ prediction }} with {{ probability | round(2) }}% confidence</p>
+                        <p>ARC predicts {{ prediction }} with {{ probability | round(2) }}% confidence.</p>
+                        {% if uploaded_filename %}
+                        <p class="prediction-meta">Analyzed file: {{ uploaded_filename }}</p>
+                        {% endif %}
+                        {% else %}
+                        <p class="prediction-placeholder">Upload an MRI slice to view predictions.</p>
                         {% endif %}
                     </div>
                 </div>
@@ -122,12 +130,12 @@
         });
 
         form.addEventListener('submit', (event) => {
-            event.preventDefault();
             if (!fileInput.files.length) {
-                showAlert('Please select an image before asking IRMA.', 'error');
-                return;
+                event.preventDefault();
+                showAlert('Please select an image before asking ARC.', 'error');
+            } else {
+                showAlert('Uploading image for prediction...', 'info');
             }
-            showAlert('Prediction service is in maintenance.', 'info');
         });
     </script>
 </body>
