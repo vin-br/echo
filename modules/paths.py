@@ -17,7 +17,7 @@ MODELS_DIR = PROJECT_ROOT / "models"
 CHECKPOINTS_DIR = MODELS_DIR / "checkpoints"
 RESULTS_DIR = MODELS_DIR / "results"
 LOGS_DIR = MODELS_DIR / "logs"
-MODEL_PATH = CHECKPOINTS_DIR / "convnext-tiny-b16-img224-e40-lr-5e-4.pt"
+MODEL_PATH = CHECKPOINTS_DIR / "convnext-tiny-b16-img224-e60-lr-5e-4.pt"
 
 # Data directories
 DATA_DIR = PROJECT_ROOT / "data"
