@@ -1,19 +1,15 @@
-[build-system]
-requires = ["setuptools>=65", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
+[tool.poetry]
 name = "arc"
 version = "0.1.0"
-description = "ARC project"
-readme = "README.md"
-requires-python = "==3.14.*"
-dependencies = []
+description = "Arc Project Root"
+package-mode = false
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["backend*", "frontend*", "models*", "modules*"]
-exclude = ["legacy*"]
+[tool.poetry.dependencies]
+python = "^3.14"
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.12.0"
+flake8 = "^7.3.0"
 
 [tool.black]
 line-length = 100
