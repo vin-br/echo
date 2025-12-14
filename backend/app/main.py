@@ -57,6 +57,13 @@ def _message(text: str, level: str = "info") -> Dict[str, str]:
     return {"text": text, "level": level}
 
 
+# Health check endpoint
+@app.get("/healthz")
+async def healthz() -> Dict[str, str]:
+    """Health check endpoint for Docker healthcheck."""
+    return {"status": "ok"}
+
+
 # Define root endpoint
 @app.get("/", response_class=HTMLResponse)
 async def read_index(request: Request) -> HTMLResponse:
