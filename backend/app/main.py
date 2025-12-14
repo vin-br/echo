@@ -8,8 +8,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from modules.paths import STATIC_DIR, TEMPLATES_DIR, verify_paths
-from .predict import predict_image
+from modules.paths import MODEL_PATH, STATIC_DIR, TEMPLATES_DIR, verify_paths
+from ai.inference import predict_image
 
 # Verify necessary paths exist from modules package
 verify_paths()
@@ -22,9 +22,9 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     """Preload ML assets during app startup."""
-    from .load_model import get_model
+    from ai.inference import get_model
 
-    get_model()
+    get_model(MODEL_PATH)
     yield
 
 
@@ -87,7 +87,7 @@ async def classify_image(request: Request, file1: UploadFile = File(...)) -> HTM
         return templates.TemplateResponse("index.html", context)
 
     try:
-        prediction = predict_image(file_bytes)
+        prediction = predict_image(file_bytes, MODEL_PATH)
     except ValueError as exc:
         context = _base_context(
             request,
