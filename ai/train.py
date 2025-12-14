@@ -21,12 +21,11 @@ from rich.progress import (
 )
 from rich.prompt import Prompt
 
-from models.config import MODEL_REGISTRY
-from models.trainer import build_model, run_experiment
-from modules.paths import TESTING_DATASET, TRAINING_DATASET, MODELS_DIR
+from ai.config import MODEL_REGISTRY
+from ai.trainer import build_model, run_experiment
+from modules.paths import TESTING_DATASET, TRAINING_DATASET, RESULTS_DIR
 
 EPOCH_PATTERN = re.compile(r"Epoch\s+(?P<current>\d+)/(?:\s*)(?P<total>\d+)")
-DEFAULT_RESULTS_DIR = MODELS_DIR / "runs"
 COMMON_LRS = (1e-3, 5e-4, 1e-4)
 EXIT_WORDS = {"exit", "quit", "q", "leave", "stop", "bye"}
 
@@ -184,7 +183,7 @@ def main() -> None:
         raise SystemExit("Model selection is required (pass a value or use --interactive).")
     console.rule(f"[bold cyan]Training {args.model}")
 
-    results_dir: Path = DEFAULT_RESULTS_DIR
+    results_dir: Path = RESULTS_DIR
     required_dirs = {
         "TRAINING_DATASET": TRAINING_DATASET,
         "VALIDATION_DATASET": TESTING_DATASET,

@@ -12,12 +12,12 @@ FRONTEND_DIR = PROJECT_ROOT / "frontend"
 TEMPLATES_DIR = FRONTEND_DIR / "templates"
 STATIC_DIR = FRONTEND_DIR / "static"
 
-# Models and metadata
+# AI Service and Models directories
+AI_DIR = PROJECT_ROOT / "ai"
+RESULTS_DIR = AI_DIR / "results"
+LOGS_DIR = AI_DIR / "logs"
 MODELS_DIR = PROJECT_ROOT / "models"
-CHECKPOINTS_DIR = MODELS_DIR / "checkpoints"
-RESULTS_DIR = MODELS_DIR / "results"
-LOGS_DIR = MODELS_DIR / "logs"
-MODEL_PATH = CHECKPOINTS_DIR / "convnext-tiny-b16-img224-e60-lr-5e-4.pt"
+MODEL_PATH = MODELS_DIR / "convnext-tiny-b16-img224-e60-lr-5e-4.pt"
 
 # Data directories
 DATA_DIR = PROJECT_ROOT / "data"
@@ -61,8 +61,8 @@ __all__ = [
     "FRONTEND_DIR",
     "TEMPLATES_DIR",
     "STATIC_DIR",
+    "AI_DIR",
     "MODELS_DIR",
-    "CHECKPOINTS_DIR",
     "RESULTS_DIR",
     "LOGS_DIR",
     "MODEL_PATH",
