@@ -23,5 +23,8 @@ COPY ai ./ai/ \
 
 EXPOSE 8001
 
-# Default command for training (can be overridden in docker-compose)
-CMD ["python", "-m", "ai.train"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD python -c "import sys; sys.exit(0)" || exit 1
+
+# Keep container alive for manual training commands
+CMD ["sleep", "infinity"]

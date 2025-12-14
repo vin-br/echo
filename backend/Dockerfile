@@ -15,13 +15,22 @@ RUN pip install --no-cache-dir --upgrade pip && \
     poetry install --no-ansi --no-root --only main && \
     rm -rf /root/.cache/pip
 
-# Copy backend, frontend, AI model and inference
-COPY backend ./backend \
-     frontend ./frontend \
-     modules ./modules \
-     ai/config.py ai/inference.py ai/trainer.py ./ai/ \
-     models/convnext-tiny-b16-img224-e60-lr-5e-4.pt ./models/
+# Copy application directories
+COPY backend ./backend/
+COPY frontend ./frontend/
+COPY modules ./modules/
+
+# Copy AI inference files
+COPY ai/config.py ./ai/config.py
+COPY ai/inference.py ./ai/inference.py  
+COPY ai/trainer.py ./ai/trainer.py
+
+# Copy model checkpoint
+COPY models/convnext-tiny-b16-img224-e60-lr-5e-4.pt ./models/convnext-tiny-b16-img224-e60-lr-5e-4.pt
 
 EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz').read()" || exit 1
 
 CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

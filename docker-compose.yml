@@ -14,6 +14,12 @@ services:
     restart: unless-stopped
     stdin_open: true
     tty: true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     
   backend:
     build:
@@ -25,3 +31,9 @@ services:
       - ./backend:/app/backend
       - ./modules:/app/modules
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
