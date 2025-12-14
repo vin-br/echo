@@ -6,6 +6,19 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "==3.14.*"
+# Backend dependencies
+fastapi = "^0.124.4"
+uvicorn = "^0.38.0"
+jinja2 = "^3.1.6"
+pillow = "^12.0.0"
+torch = "^2.9.1"
+torchvision = "^0.24.1"
+python-multipart = "^0.0.20"
+# AI dependencies
+polars = "^1.36.1"
+plotly = "^6.5.0"
+rich = "^14.2.0"
+pyarrow = "^22.0.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.12.0"
