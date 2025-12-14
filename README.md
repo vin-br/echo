@@ -18,28 +18,29 @@ Check out this [video](path/to/demo.mp4) for a demonstration on how to start and
 
 ## Installation
 
-This installation uses PyEnv to manage the Python version on your local machine. If you do not wish to install PyEnv, you can download and install Python directly and skip steps 1 and 2.
+### Option A - Using Docker (recommended)
 
-Please follow these steps to install the project with PyEnv:
+1. Make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
+2. Clone this repository.
+3. Navigate to the project root directory.
+4. Run the following command to build the containers: ```docker compose build --no-cache```
+5. Start the containers using: ```docker compose up -d```
+6. Access the app at: ```http://localhost:8000```
+7. To stop the containers, run: ```docker compose down```
+8. To view logs, use: ```docker compose logs -f```
+   
+### Option B - Local Dev setup
 
-1. Install Python with Pyenv: ```pyenv install 3.14.0```
+**Installation steps to set up the project locally using Poetry:**
+1. Make sure you have Python 3.14+ and pip installed on your machine.
+2. Clone this repository.
+3. Navigate to the project root directory.
+4. Install poetry with curl -sSL https://install.python-poetry.org | python3 -
+5. Set up a virtual environment: ```poetry config virtualenvs.in-project true```
+6. Install the dependencies: ```poetry install```
+7. Activate the virtual environment with poetry: ```poetry env activate``` or alternatively: ```source .venv/bin/activate``` (Linux/Mac) or ```.venv\Scripts\activate``` (Windows)
 
-2. Set the Python version as either local or global: ```pyenv local 3.14.0``` or ```pyenv global 3.14.0```
-
-3. Then, use cd to move to the project's folder.
-
-4. Create a virtual environment: ```python -m venv .venv```
-
-5. Activate the virtual environment on linux or macOS: ```source .venv/bin/activate```
-
-6. Upgrade pip to the latest version: ```python -m pip install --upgrade pip```
-
-7. Install the project in editable mode: ```python -m pip install -e .```
-
-8. Install the packages with either the requirements or the individual list provided if the requirements fail to install: ```pip install -r requirements.txt``` or ```pip install "fastapi[standard]" pillow torch torchvision ipykernel plotly```
-
-## Run FastAPI app
-
+**Run FastAPI app:**
 - Use FastAPI's uvicorn command to start the project from root: ```uvicorn backend.app.main:app --reload```.
 
 ## Unit testing
