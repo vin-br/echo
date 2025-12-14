@@ -2,9 +2,10 @@
 name = "arc"
 version = "0.1.0"
 description = "Arc Project Root"
+authors = ["Vincent Boettcher <vin.br@runbox.no>"]
 package-mode = false
 
-[tool.poetry.dependencies]
+[tool.poetry.group.dev.dependencies]
 python = "==3.14.*"
 # Backend dependencies
 fastapi = "^0.124.4"
@@ -19,8 +20,7 @@ polars = "^1.36.1"
 plotly = "^6.5.0"
 rich = "^14.2.0"
 pyarrow = "^22.0.0"
-
-[tool.poetry.group.dev.dependencies]
+# Dev dependencies
 black = "^25.12.0"
 flake8 = "^7.3.0"
 

@@ -14,6 +14,7 @@ pillow = "^12.0.0"
 torch = "^2.9.1"
 torchvision = "^0.24.1"
 python-multipart = "^0.0.20"
+polars = "^1.36.1"
 
 [build-system]
 requires = ["poetry-core"]
