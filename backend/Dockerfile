@@ -15,11 +15,12 @@ RUN pip install --no-cache-dir --upgrade pip && \
     poetry install --no-ansi --no-root --only main && \
     rm -rf /root/.cache/pip
 
-# Copy application code
-COPY backend ./backend
-COPY modules ./modules
-COPY frontend ./frontend
-COPY models/checkpoints/convnext-tiny-b16-img224-e60-lr-5e-4.pt ./models/checkpoints/convnext-tiny-b16-img224-e60-lr-5e-4.pt
+# Copy backend, frontend, AI model and inference
+COPY backend ./backend \
+     frontend ./frontend \
+     modules ./modules \
+     ai/config.py ai/inference.py ai/trainer.py ./ai/ \
+     models/convnext-tiny-b16-img224-e60-lr-5e-4.pt ./models/
 
 EXPOSE 8000
 
