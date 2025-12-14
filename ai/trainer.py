@@ -7,6 +7,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable, Dict, Tuple
 
+import polars as pl
 import torch
 from torch import nn
 from torch.optim import Adam
@@ -275,6 +276,7 @@ def run_experiment(
     checkpoint_path = MODELS_DIR / f"{checkpoint_name}.pt"
     log_path = LOGS_DIR / f"{checkpoint_name}.log"
     results_path = RESULTS_DIR / f"{checkpoint_name}.json"
+    history_path = RESULTS_DIR / f"{checkpoint_name}-history.arrow"
 
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -341,6 +343,7 @@ def run_experiment(
             "checkpoint_path": checkpoint_path,
             "log_path": log_path,
             "results_path": results_path,
+            "history_path": history_path,
             "best_epoch": best_record["epoch"],
             "best_epoch_metrics": {
                 "train_acc": best_record["train_acc"],
@@ -360,6 +363,21 @@ def run_experiment(
             },
         }
 
+        # Save history as arrow file
+        epochs_list = list(range(1, len(history["train_acc"]) + 1))
+        df = pl.DataFrame(
+            {
+                "run": checkpoint_name,
+                "epoch": epochs_list,
+                "train_acc": history["train_acc"],
+                "val_acc": history["val_acc"],
+                "val_best": float(experiment_result["val_metrics"]["acc"]),
+                "test_acc": float(experiment_result["test_metrics"]["acc"]),
+            }
+        )
+        df.write_ipc(history_path)
+
+        # Save full results as JSON
         json_ready = {
             key: (str(value) if isinstance(value, Path) else value)
             for key, value in experiment_result.items()

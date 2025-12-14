@@ -107,8 +107,8 @@ def save_history(artifact_name: str, results: dict[str, Any], results_dir: Path)
         }
     )
     results_dir.mkdir(parents=True, exist_ok=True)
-    path = results_dir / f"{artifact_name}-history.parquet"
-    df.write_parquet(path)
+    path = results_dir / f"{artifact_name}-history.arrow"
+    df.write_ipc(path)
     return path
 
 
