@@ -17,6 +17,13 @@ python-multipart = "^0.0.20"
 polars = "^1.36.1"
 duckdb = "^1.4.3"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0.2"
+httpx = "^0.28.1"
+
+[tool.pytest.ini_options]
+pythonpath = [".."]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
