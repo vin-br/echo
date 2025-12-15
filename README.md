@@ -28,7 +28,9 @@ Check out this [video](path/to/demo.mp4) for a demonstration on how to start and
 6. Access the app at: ```http://localhost:8000```
 7. To stop the containers, run: ```docker compose down```
 8. To view logs, use: ```docker compose logs -f```
-   
+
+The app should now be running locally on your machine through Docker containers and accessible at the specified URL: ```http://localhost:8000```.
+
 ### Option B - Local Dev setup
 
 **Installation steps to set up the project locally using Poetry:**
@@ -41,11 +43,22 @@ Check out this [video](path/to/demo.mp4) for a demonstration on how to start and
 7. Activate the virtual environment with poetry: ```poetry env activate``` or alternatively: ```source .venv/bin/activate``` (Linux/Mac) or ```.venv\Scripts\activate``` (Windows)
 
 **Run FastAPI app:**
-- Use FastAPI's uvicorn command to start the project from root: ```uvicorn backend.app.main:app --reload```.
+```shell
+# From root directory
+uvicorn backend.app.main:app --reload
+```
+
+The app should now be running locally on your machine with a local install and accessible at the specified URL: ```http://localhost:8000```.
 
 ## Unit testing
 
-- Run the following command to automatically test the app: ```./manage.py test --pattern="tests_*.py" ```
+```shell
+# Run Tests with Poetry from root with verbose output and no traceback truncation
+poetry run pytest backend/tests/ -v --tb=
+
+# Run Test Coverage
+poetry run pytest backend/tests/ --cov=backend/app --cov=ai --cov-report=term-missing
+```
 
 ## Resources
 
@@ -61,6 +74,13 @@ Steps taken to clean the dataset:
 2. Files automatically renamed. 
 3. Images were shuffled.
 4. Images were split between training and testing (0.80/0.20).
+
+### Documentation
+
+- [PyTorch](https://docs.pytorch.org/docs/stable/index.html)
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [Poetry](https://python-poetry.org/docs/)
+- [Docker](https://docs.docker.com/manuals/)
 
 ## Disclamer
 
