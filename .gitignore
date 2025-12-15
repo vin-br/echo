@@ -65,3 +65,4 @@ venv.bak/
 
 # Unit test / coverage reports
 .pytest_cache/
+.coverage
