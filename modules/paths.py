@@ -6,6 +6,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Backend directories
 BACKEND_DIR = PROJECT_ROOT / "backend"
+BACKEND_DATA_DIR = BACKEND_DIR / "data"
 
 # Frontend directories
 FRONTEND_DIR = PROJECT_ROOT / "frontend"

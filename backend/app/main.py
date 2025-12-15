@@ -1,15 +1,23 @@
 """FastAPI Back-end"""
 
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, File, Request, UploadFile
+from fastapi import FastAPI, File, Request, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from modules.paths import MODEL_PATH, STATIC_DIR, TEMPLATES_DIR, verify_paths
+from modules.paths import (
+    MODEL_PATH,
+    STATIC_DIR,
+    TEMPLATES_DIR,
+    RESULTS_DIR,
+    BACKEND_DATA_DIR,
+    verify_paths,
+)
 from ai.inference import predict_image
+from backend.app.database import MetricsDatabase
 
 # Verify necessary paths exist from modules package
 verify_paths()
@@ -17,15 +25,30 @@ verify_paths()
 # Initialize Jinja2 templates
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
+# Global database instance
+database: Optional[MetricsDatabase] = None
+
 
 # Lifespan event to load the model at startup
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     """Preload ML assets during app startup."""
+    global database
     from ai.inference import get_model
 
     get_model(MODEL_PATH)
+
+    # Initialize database and ingest all JSON results
+    database_path = BACKEND_DATA_DIR / "metrics.duckdb"
+    database = MetricsDatabase(database_path)
+
+    # Ingest all existing JSON files
+    for json_file in RESULTS_DIR.glob("*.json"):
+        database.ingest_json(json_file)
+
     yield
+
+    database.close()
 
 
 # Create FastAPI app with lifespan event
@@ -113,6 +136,14 @@ async def classify_image(request: Request, file1: UploadFile = File(...)) -> HTM
         uploaded_filename=file1.filename,
     )
     return templates.TemplateResponse("index.html", context)
+
+
+@app.get("/api/metrics")
+async def get_metrics() -> List[Dict[str, Any]]:
+    """Generic metrics endpoint (same data as /api/metrics for now)."""
+    if database is None:
+        raise HTTPException(status_code=503, detail="Database not initialized")
+    return database.get_metrics()
 
 
 # Run the app with Uvicorn if executed directly
