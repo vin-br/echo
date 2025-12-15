@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, File, Request, UploadFile, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -85,6 +85,12 @@ def _message(text: str, level: str = "info") -> Dict[str, str]:
 async def healthz() -> Dict[str, str]:
     """Health check endpoint for Docker healthcheck."""
     return {"status": "ok"}
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def _favicon() -> Response:
+    """Return empty response for favicon requests to avoid 404 log spam."""
+    return Response(status_code=204)
 
 
 # Define root endpoint
