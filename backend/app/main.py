@@ -99,7 +99,7 @@ async def read_index(request: Request) -> HTMLResponse:
     """Render the landing page with placeholder context."""
 
     context = _base_context(request)
-    return templates.TemplateResponse("index.html", context)
+    return templates.TemplateResponse(request, "index.html", context)
 
 
 @app.post("/", response_class=HTMLResponse)
@@ -120,7 +120,7 @@ async def classify_image(request: Request, file1: UploadFile = File(...)) -> HTM
             messages=messages,
             uploaded_filename=file1.filename,
         )
-        return templates.TemplateResponse("index.html", context)
+        return templates.TemplateResponse(request, "index.html", context)
 
     try:
         prediction = predict_image(file_bytes, MODEL_PATH)
@@ -130,7 +130,7 @@ async def classify_image(request: Request, file1: UploadFile = File(...)) -> HTM
             messages=[_message(str(exc), "error")],
             uploaded_filename=file1.filename,
         )
-        return templates.TemplateResponse("index.html", context)
+        return templates.TemplateResponse(request, "index.html", context)
 
     success_message = _message("Prediction completed successfully.", "success")
     context = _base_context(
@@ -141,7 +141,7 @@ async def classify_image(request: Request, file1: UploadFile = File(...)) -> HTM
         messages=[success_message],
         uploaded_filename=file1.filename,
     )
-    return templates.TemplateResponse("index.html", context)
+    return templates.TemplateResponse(request, "index.html", context)
 
 
 @app.get("/api/metrics")
