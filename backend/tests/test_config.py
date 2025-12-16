@@ -1,9 +1,10 @@
-from shared.paths import MODEL_PATH, RESULTS_DIR, STATIC_DIR, TEMPLATES_DIR
+from shared.paths import MODEL_PATH, RESULTS_DIR, STATIC_DIR, TEMPLATES_DIR, BACKEND_DATA_DIR
 
 
 # ==================================
 # UNIT TESTS - Configuration & Paths
 # ==================================
+
 
 def test_results_dir_exists():
     """Test RESULTS_DIR path exists."""
@@ -27,3 +28,9 @@ def test_static_dir_exists():
     """Test STATIC_DIR exists."""
     assert STATIC_DIR.exists()
     assert STATIC_DIR.is_dir()
+
+
+def test_backend_data_dir_exists():
+    """Test BACKEND_DATA_DIR exists."""
+    assert BACKEND_DATA_DIR.exists()
+    assert BACKEND_DATA_DIR.is_dir()
