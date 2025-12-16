@@ -1,6 +1,9 @@
-"""DuckDB Database tests"""
-
 import json
+
+
+# ================================
+# UNIT TESTS - Database Operations
+# ================================
 
 
 def test_ingest_json(temp_db, sample_json):
