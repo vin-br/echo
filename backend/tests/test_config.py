@@ -1,7 +1,9 @@
-"""Configuration and path tests"""
+from shared.paths import MODEL_PATH, RESULTS_DIR, STATIC_DIR, TEMPLATES_DIR
 
-from modules.paths import MODEL_PATH, RESULTS_DIR, STATIC_DIR, TEMPLATES_DIR
 
+# ==================================
+# UNIT TESTS - Configuration & Paths
+# ==================================
 
 def test_results_dir_exists():
     """Test RESULTS_DIR path exists."""
