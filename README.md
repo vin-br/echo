@@ -18,29 +18,57 @@ Check out this [video](path/to/demo.mp4) for a demonstration on how to start and
 
 ## Installation
 
-### Option A - Using Docker (recommended)
-
 1. Make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
 2. Clone this repository.
-3. Navigate to the project root directory.
-4. Run the following command to build the containers: ```docker compose build --no-cache```
-5. Start the containers using: ```docker compose up -d```
-6. Access the app at: ```http://localhost:8000```
-7. To stop the containers, run: ```docker compose down```
-8. To view logs, use: ```docker compose logs -f```
 
-The app should now be running locally on your machine through Docker containers and accessible at the specified URL: ```http://localhost:8000```.
+### Option A - Using Docker (recommended)
+
+Before you start:
+- make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine
+- clone this repository locally.
+
+```shell
+# From root directory run the following command to build the containers:
+docker compose build --no-cache
+
+# Start the containers using:
+docker compose up -d
+
+# Access the app at:
+http://localhost:8000
+
+# To stop the containers, run:
+docker compose down
+
+# To view logs, use:
+docker compose logs -f
+```
+
+The app should now be running locally on your machine through Docker containers and accessible at the specified URL: `http://localhost:8000`
 
 ### Option B - Local Dev setup
 
-**Installation steps to set up the project locally using Poetry:**
-1. Make sure you have Python 3.14+ and pip installed on your machine.
-2. Clone this repository.
-3. Navigate to the project root directory.
-4. Install poetry with curl -sSL https://install.python-poetry.org | python3 -
-5. Set up a virtual environment: ```poetry config virtualenvs.in-project true```
-6. Install the dependencies: ```poetry install```
-7. Activate the virtual environment with poetry: ```poetry env activate``` or alternatively: ```source .venv/bin/activate``` (Linux/Mac) or ```.venv\Scripts\activate``` (Windows)
+**Installation steps to set up the project locally using pip/poetry:**
+Before you start:
+- make sure you have Python 3.14+ and pip installed on your machine.
+- clone this repository locally.
+
+```shell
+# Install poetry with curl like requested in the official docs
+curl -sSL https://install.python-poetry.org | python3 -
+
+# From root directory, set up a virtual environment:
+poetry config virtualenvs.in-project true
+
+# Install the dependencies:
+poetry install
+
+# Activate the virtual environment with poetry:
+poetry env activate
+# or alternatively:
+source .venv/bin/activate  # (Linux/Mac)
+.venv\Scripts\activate    # (Windows)
+```
 
 **Run FastAPI app:**
 ```shell
@@ -56,8 +84,11 @@ The app should now be running locally on your machine with a local install and a
 # Run Tests with Poetry from root with verbose output and no traceback truncation
 poetry run pytest backend/tests/ -v --tb=
 
-# Run Test Coverage
+# Run Test Coverage with a report in the terminal
 poetry run pytest backend/tests/ --cov=backend/app --cov=ai --cov-report=term-missing
+
+# Run Test Coverage with an HTML report
+poetry run pytest --cov=backend --cov-report=html
 ```
 
 ## Resources
@@ -79,6 +110,7 @@ Steps taken to clean the dataset:
 
 - [PyTorch](https://docs.pytorch.org/docs/stable/index.html)
 - [FastAPI](https://fastapi.tiangolo.com/)
+- [pytest](https://docs.pytest.org/en/stable/)
 - [Poetry](https://python-poetry.org/docs/)
 - [Docker](https://docs.docker.com/manuals/)
 
