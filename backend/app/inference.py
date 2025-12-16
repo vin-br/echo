@@ -10,8 +10,14 @@ from PIL import Image, UnidentifiedImageError
 from torch import nn
 from torchvision import transforms
 
-from ai.config import CLASS_LABELS, DEVICE, IMAGENET_MEAN, IMAGENET_STD, MODEL_REGISTRY
-from ai.trainer import build_model
+from shared.config import (
+    CLASS_LABELS,
+    DEVICE,
+    IMAGENET_MEAN,
+    IMAGENET_STD,
+    MODEL_REGISTRY,
+    NUM_CLASSES,
+)
 
 _DEFAULT_IMAGE_SIZE = 224
 _IMAGE_SIZE_PATTERN = re.compile(r"img(?P<size>\d+)")
@@ -19,6 +25,25 @@ _IMAGE_SIZE_PATTERN = re.compile(r"img(?P<size>\d+)")
 # Cached model instance
 _MODEL: nn.Module | None = None
 _CURRENT_MODEL_PATH: Path | None = None
+
+
+def _modify_model_head(model: nn.Module, model_config: dict) -> nn.Module:
+    """Modify model's classification head to match NUM_CLASSES."""
+    head_path = model_config["head_path"]
+
+    if len(head_path) == 1:
+        # Simple case: ResNet
+        layer_name = head_path[0]
+        in_features = getattr(model, layer_name).in_features
+        setattr(model, layer_name, nn.Linear(in_features, NUM_CLASSES))
+    else:
+        # Nested case: MobileNet/ConvNeXt classifier
+        parent_name, child_idx = head_path[0], head_path[1]
+        parent_module = getattr(model, parent_name)
+        in_features = parent_module[child_idx].in_features
+        parent_module[child_idx] = nn.Linear(in_features, NUM_CLASSES)
+
+    return model
 
 
 def _detect_model_key(path: Path) -> str:
@@ -69,7 +94,15 @@ def load_model(model_path: Path) -> nn.Module:
 
     if isinstance(checkpoint, dict):
         model_key = _detect_model_key(model_path)
-        model = build_model(model_key)
+        model_config = MODEL_REGISTRY[model_key]
+
+        # Build model architecture from torchvision using the factory function
+        model = model_config["factory"]()
+
+        # Modify the classification head to match our number of classes
+        model = _modify_model_head(model, model_config)
+
+        # Load trained weights
         model.load_state_dict(checkpoint)
         model.eval()
         _MODEL = model
@@ -104,7 +137,14 @@ def _format_label(label: str) -> str:
 
 
 def predict_image(file_bytes: bytes, model_path: Path) -> Dict[str, float | str]:
-    """Run inference on uploaded image and return prediction results."""
+    """Run inference on uploaded image and return prediction results.
+
+    Returns:
+        Dictionary with keys:
+            - "label": str - class label
+            - "display_label": str - formatted class label for display
+            - "confidence": float - confidence percentage (0-100)
+    """
 
     # Load image and prepare transform
     image = _load_image(file_bytes)

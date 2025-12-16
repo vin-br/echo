@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from modules.paths import (
+from shared.paths import (
     MODEL_PATH,
     STATIC_DIR,
     TEMPLATES_DIR,
@@ -16,7 +16,7 @@ from modules.paths import (
     BACKEND_DATA_DIR,
     verify_paths,
 )
-from ai.inference import predict_image
+from backend.app.inference import predict_image
 from backend.app.database import MetricsDatabase
 
 # Verify necessary paths exist from modules package
@@ -34,7 +34,7 @@ database: Optional[MetricsDatabase] = None
 async def lifespan(_: FastAPI):
     """Preload ML assets during app startup."""
     global database
-    from ai.inference import get_model
+    from backend.app.inference import get_model
 
     get_model(MODEL_PATH)
 
