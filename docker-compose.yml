@@ -9,7 +9,7 @@ services:
       - "8001:8001"
     volumes:
       - ./ai:/app/ai
-      - ./modules:/app/modules
+      - ./shared:/app/shared
       - ./models:/app/models
       - ./data:/app/data
     restart: unless-stopped
@@ -31,7 +31,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app/backend
-      - ./modules:/app/modules
+      - ./shared:/app/shared
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz').read()"]
