@@ -8,7 +8,7 @@ import torch
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
-from modules.paths import RESULTS_DIR
+from shared.paths import RESULTS_DIR
 
 logger = logging.getLogger(__name__)
 

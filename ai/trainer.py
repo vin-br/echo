@@ -14,8 +14,8 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-from ai.config import DEVICE, IMAGENET_MEAN, IMAGENET_STD, NUM_CLASSES, MODEL_REGISTRY
-from modules.paths import MODELS_DIR, LOGS_DIR, RESULTS_DIR
+from shared.config import DEVICE, IMAGENET_MEAN, IMAGENET_STD, NUM_CLASSES, MODEL_REGISTRY
+from shared.paths import MODELS_DIR, LOGS_DIR, RESULTS_DIR
 
 # Keep runs deterministic for reproducibility.
 torch.manual_seed(42)

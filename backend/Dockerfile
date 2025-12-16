@@ -18,12 +18,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application directories
 COPY backend ./backend/
 COPY frontend ./frontend/
-COPY modules ./modules/
-
-# Copy AI inference files
-COPY ai/config.py ./ai/config.py
-COPY ai/inference.py ./ai/inference.py  
-COPY ai/trainer.py ./ai/trainer.py
+COPY shared ./shared/
 
 # Copy model checkpoint
 COPY models/convnext-tiny-b16-img224-e60-lr-5e-4.pt ./models/convnext-tiny-b16-img224-e60-lr-5e-4.pt

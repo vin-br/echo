@@ -21,9 +21,9 @@ from rich.progress import (
 )
 from rich.prompt import Prompt
 
-from ai.config import MODEL_REGISTRY
+from shared.config import MODEL_REGISTRY
 from ai.trainer import build_model, run_experiment
-from modules.paths import TESTING_DATASET, TRAINING_DATASET, RESULTS_DIR
+from shared.paths import TESTING_DATASET, TRAINING_DATASET, RESULTS_DIR
 
 EPOCH_PATTERN = re.compile(r"Epoch\s+(?P<current>\d+)/(?:\s*)(?P<total>\d+)")
 COMMON_LRS = (1e-3, 5e-4, 1e-4)

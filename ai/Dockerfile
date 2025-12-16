@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy AI training code and shared modules
 COPY ai ./ai/ \
-     modules ./modules/
+     shared ./shared/
 
 # Note: models/ and data/ are mounted via docker-compose volumes
 
