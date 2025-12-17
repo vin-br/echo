@@ -15,9 +15,10 @@ lint:python:
   script:
     - pip install ruff
     - ruff check backend/ ai/ shared/
-  only:
-    - merge_requests
-    - main
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
 
 
 # ============================
@@ -33,9 +34,10 @@ test:backend:
     - cd backend && poetry install
   script:
     - cd backend && poetry run pytest tests/ -v
-  only:
-    - merge_requests
-    - main
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
 
 
 # ====================================
@@ -51,8 +53,8 @@ build:backend:
   script:
     - docker build -f backend/Dockerfile -t $CI_REGISTRY_IMAGE/backend:latest .
     - docker push $CI_REGISTRY_IMAGE/backend:latest
-  only:
-    - main
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
 
 
 build:ai:
@@ -65,5 +67,5 @@ build:ai:
   script:
     - docker build -f ai/Dockerfile -t $CI_REGISTRY_IMAGE/ai:latest .
     - docker push $CI_REGISTRY_IMAGE/ai:latest
-  only:
-    - main
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
