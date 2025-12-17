@@ -1,0 +1,69 @@
+# ARC Project GitLab CI/CD Pipeline Configuration
+
+stages:
+  - lint
+  - test
+  - build
+
+# =================================================
+# STAGE 1: LINT - Code formatting and static checks
+# =================================================
+
+lint:python:
+  stage: lint
+  image: python:3.14-slim
+  script:
+    - pip install ruff
+    - ruff check backend/ ai/ shared/
+  only:
+    - merge_requests
+    - main
+
+
+# ============================
+# STAGE 2: TEST - Pytest suite
+# ============================
+
+test:backend:
+  stage: test
+  image: python:3.14-slim
+  before_script:
+    - apt-get update && apt-get install -y gcc g++
+    - pip install poetry
+    - cd backend && poetry install
+  script:
+    - cd backend && poetry run pytest tests/ -v
+  only:
+    - merge_requests
+    - main
+
+
+# ====================================
+# STAGE 3: BUILD - Docker image builds
+# ====================================
+build:backend:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -f backend/Dockerfile -t $CI_REGISTRY_IMAGE/backend:latest .
+    - docker push $CI_REGISTRY_IMAGE/backend:latest
+  only:
+    - main
+
+
+build:ai:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -f ai/Dockerfile -t $CI_REGISTRY_IMAGE/ai:latest .
+    - docker push $CI_REGISTRY_IMAGE/ai:latest
+  only:
+    - main
