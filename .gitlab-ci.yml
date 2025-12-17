@@ -12,9 +12,12 @@ stages:
 lint:python:
   stage: lint
   image: python:3.14-slim
+  before_script:
+    - apt-get update && apt-get install -y gcc g++
+    - pip install poetry
+    - poetry install --only dev
   script:
-    - pip install ruff
-    - ruff check backend/ ai/ shared/
+    - poetry run ruff check backend/ ai/ shared/
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "main"'
