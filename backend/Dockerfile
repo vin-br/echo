@@ -1,19 +1,19 @@
-FROM python:3.14.1-slim
+FROM python:3.14.2-slim
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    UV_PROJECT_ENVIRONMENT=/usr/local
 
 WORKDIR /app
 
-# Copy poetry files for installing dependencies
-COPY backend/pyproject.toml backend/poetry.lock ./
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Install poetry and dependencies using lock file
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --no-ansi --no-root --only main && \
-    rm -rf /root/.cache/pip
+# Install dependencies using intermediate layer for caching
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=backend/pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=backend/uv.lock,target=uv.lock \
+    uv sync --frozen --no-install-project --no-dev
 
 # Copy application directories
 COPY backend ./backend/
@@ -22,6 +22,10 @@ COPY shared ./shared/
 
 # Copy model checkpoint
 COPY models/convnext-tiny-b16-img224-e60-lr-5e-4.pt ./models/convnext-tiny-b16-img224-e60-lr-5e-4.pt
+
+# Sync the project
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
 EXPOSE 8000
 

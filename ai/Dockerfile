@@ -1,25 +1,27 @@
-FROM python:3.14.1-slim
+FROM python:3.14.2-slim
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    UV_PROJECT_ENVIRONMENT=/usr/local
 
 WORKDIR /app
 
-# Copy poetry files for installing dependencies
-COPY ai/pyproject.toml ./
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Install poetry and dependencies using lock file
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --no-ansi --no-root --only main && \
-    rm -rf /root/.cache/pip
+# Install dependencies using intermediate layer for caching
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=ai/pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=ai/uv.lock,target=uv.lock \
+    uv sync --frozen --no-install-project
 
 # Copy AI training code and shared modules
-COPY ai ./ai/ \
-     shared ./shared/
+COPY ai ./ai/
+COPY shared ./shared/
 
-# Note: models/ and data/ are mounted via docker-compose volumes
+# Sync the project
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen
 
 EXPOSE 8001
 

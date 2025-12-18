@@ -11,13 +11,16 @@ stages:
 
 lint:python:
   stage: lint
-  image: python:3.14-slim
+  image: python:3.14.2-slim
+  variables:
+    UV_SYSTEM_PYTHON: "1"
   before_script:
-    - apt-get update && apt-get install -y gcc g++
-    - pip install poetry
-    - poetry install --only dev
+    - apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
+    - uv sync --frozen --group dev
   script:
-    - poetry run ruff check backend/ ai/ shared/
+    - uv run ruff check backend/ ai/ shared/
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "main"'
@@ -30,13 +33,16 @@ lint:python:
 
 test:backend:
   stage: test
-  image: python:3.14-slim
+  image: python:3.14.2-slim
+  variables:
+    UV_SYSTEM_PYTHON: "1"
   before_script:
-    - apt-get update && apt-get install -y gcc g++
-    - pip install poetry
-    - cd backend && poetry install
+    - apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
+    - cd backend && uv sync --frozen --group dev
   script:
-    - cd backend && poetry run pytest tests/ -v
+    - cd backend && uv run pytest tests/ -v
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "main"'
