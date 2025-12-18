@@ -48,32 +48,28 @@ The app should now be running locally on your machine through Docker containers 
 
 ### Option B - Local Dev setup
 
-**Installation steps to set up the project locally using pip/poetry:**
+**Installation steps to set up the project locally using uv:**
 Before you start:
-- make sure you have Python 3.14+ and pip installed on your machine.
 - clone this repository locally.
 
 ```shell
-# Install poetry with curl like requested in the official docs
-curl -sSL https://install.python-poetry.org | python3 -
+# Install uv (on macOS/Linux)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# From root directory, set up a virtual environment:
-poetry config virtualenvs.in-project true
+# Or alternatively on Windows:
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# From root directory, install Python 3.14.2 with uv:
+uv python install 3.14.2
 
 # Install the dependencies:
-poetry install
-
-# Activate the virtual environment with poetry:
-poetry env activate
-# or alternatively:
-source .venv/bin/activate  # (Linux/Mac)
-.venv\Scripts\activate    # (Windows)
+uv sync --group dev
 ```
 
 **Run FastAPI app:**
 ```shell
 # From root directory
-uvicorn backend.app.main:app --reload
+uv run uvicorn backend.app.main:app --reload
 ```
 
 The app should now be running locally on your machine with a local install and accessible at the specified URL: ```http://localhost:8000```.
@@ -81,14 +77,14 @@ The app should now be running locally on your machine with a local install and a
 ## Unit testing
 
 ```shell
-# Run Tests with Poetry from root with verbose output and no traceback truncation
-poetry run pytest backend/tests/ -v --tb=
+# Run Tests from root with verbose output
+uv run pytest backend/tests/ -v --tb=auto
 
 # Run Test Coverage with a report in the terminal
-poetry run pytest backend/tests/ --cov=backend/app --cov=ai --cov-report=term-missing
+uv run pytest backend/tests/ --cov=backend/app --cov=ai --cov-report=term-missing
 
 # Run Test Coverage with an HTML report
-poetry run pytest --cov=backend --cov-report=html
+uv run pytest --cov=backend --cov-report=html
 ```
 
 ## Resources
@@ -111,7 +107,9 @@ Steps taken to clean the dataset:
 - [PyTorch](https://docs.pytorch.org/docs/stable/index.html)
 - [FastAPI](https://fastapi.tiangolo.com/)
 - [pytest](https://docs.pytest.org/en/stable/)
-- [Poetry](https://python-poetry.org/docs/)
+- [uv](https://docs.astral.sh/uv/)
+- [Ruff](https://docs.astral.sh/ruff/)
+- [Ty](https://docs.astral.sh/ty/)
 - [Docker](https://docs.docker.com/manuals/)
 
 ## Disclamer
