@@ -42,7 +42,17 @@ test:backend:
     - export PATH="$HOME/.local/bin:$PATH"
     - cd backend && uv sync --frozen --group dev
   script:
-    - cd backend && uv run pytest tests/ -v
+    - cd backend && uv run pytest tests/ -v --cov=backend --cov-report=term --cov-report=html --cov-report=xml --cov-report=json
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: backend/coverage.xml
+    paths:
+      - backend/htmlcov/
+      - backend/coverage.json
+    expire_in: 30 days
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "main"'
@@ -62,6 +72,8 @@ build:backend:
   script:
     - docker build -f backend/Dockerfile -t $CI_REGISTRY_IMAGE/backend:latest .
     - docker push $CI_REGISTRY_IMAGE/backend:latest
+  after_script:
+    - docker images
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
 
@@ -76,5 +88,7 @@ build:ai:
   script:
     - docker build -f ai/Dockerfile -t $CI_REGISTRY_IMAGE/ai:latest .
     - docker push $CI_REGISTRY_IMAGE/ai:latest
+  after_script:
+    - docker images
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
