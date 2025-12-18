@@ -19,10 +19,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY ai ./ai/
 COPY shared ./shared/
 
-# Sync the project
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen
-
 EXPOSE 8001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
