@@ -62,20 +62,27 @@ test:backend:
 # ====================================
 # STAGE 3: BUILD - Docker image builds
 # ====================================
+# Builds and pushes to Docker Hub only (public access, no account needed)
 build:backend:
   stage: build
   image: docker:latest
   services:
     - docker:dind
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # Login to Docker Hub (requires DOCKERHUB_USERNAME and DOCKERHUB_TOKEN variables in GitLab)
+    - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
   script:
-    - docker build -f backend/Dockerfile -t $CI_REGISTRY_IMAGE/backend:latest .
-    - docker push $CI_REGISTRY_IMAGE/backend:latest
+    # Build and push to Docker Hub
+    - docker build -f backend/Dockerfile -t $DOCKERHUB_USERNAME/arc-backend:latest .
+    - docker tag $DOCKERHUB_USERNAME/arc-backend:latest $DOCKERHUB_USERNAME/arc-backend:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKERHUB_USERNAME/arc-backend:latest
+    - docker push $DOCKERHUB_USERNAME/arc-backend:$CI_COMMIT_SHORT_SHA
   after_script:
     - docker images
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_TITLE =~ /^Merge branch.*develop.*into main/'
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "develop"'
+      when: manual
 
 
 build:ai:
@@ -84,11 +91,17 @@ build:ai:
   services:
     - docker:dind
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # Login to Docker Hub
+    - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
   script:
-    - docker build -f ai/Dockerfile -t $CI_REGISTRY_IMAGE/ai:latest .
-    - docker push $CI_REGISTRY_IMAGE/ai:latest
+    # Build and push to Docker Hub
+    - docker build -f ai/Dockerfile -t $DOCKERHUB_USERNAME/arc-ai:latest .
+    - docker tag $DOCKERHUB_USERNAME/arc-ai:latest $DOCKERHUB_USERNAME/arc-ai:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKERHUB_USERNAME/arc-ai:latest
+    - docker push $DOCKERHUB_USERNAME/arc-ai:$CI_COMMIT_SHORT_SHA
   after_script:
     - docker images
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_TITLE =~ /^Merge branch.*develop.*into main/'
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "develop"'
+      when: manual
