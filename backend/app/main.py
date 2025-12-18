@@ -52,7 +52,13 @@ async def lifespan(_: FastAPI):
 
 
 # Create FastAPI app with lifespan event
-app = FastAPI(title="ARC FastAPI", lifespan=lifespan)
+app = FastAPI(
+    title="ARC Brain Tumor Classification API",
+    description="API for an AI Radiology Copilot to classify brain tumor images using deep learning models",
+    version="1.0.0",
+    docs_url="/docs",  # Swagger UI
+    lifespan=lifespan,
+)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

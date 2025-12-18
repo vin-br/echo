@@ -139,6 +139,15 @@ uv run pytest backend/tests/ --cov=backend/app --cov=ai --cov-report=term-missin
 uv run pytest --cov=backend --cov-report=html
 ```
 
+## Swagger API Documentation
+
+The API documentation is automatically generated using FastAPI and can be accessed via Swagger UI at the following URL when the application is running:
+
+```shell
+# Swagger UI
+http://localhost:8000/docs
+```
+
 ## Resources
 
 ### Datasets
