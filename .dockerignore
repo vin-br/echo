@@ -30,18 +30,14 @@ tests/
 
 # IDE
 .vscode/
+arc.code-workspace
 
 # Scripts
 scripts/
 
-# Legacy
-legacy/
-
-# Root config files
+# Dependency files
 pyproject.toml
-poetry.lock
-poetry.toml
-arc.code-workspace
+uv.lock
 
 # Docker
 docker-compose.yml
