@@ -16,45 +16,95 @@ Check out this [video](path/to/demo.mp4) for a demonstration on how to start and
 
 <img src="path/to/screenshot_3.png" style="width: 100%; height: auto;">
 
-## Installation
+##  User Installation
 
-### Option A - Using Docker (recommended)
+**Using Pre-built Docker Images**
+Public images are available on Docker Hub for easy user setup:
+- [ARC AI on Docker Hub](https://hub.docker.com/repository/docker/vinbr/arc-ai/general)
+- [ARC Backend on Docker Hub](https://hub.docker.com/repository/docker/vinbr/arc-backend/general)
 
 Before you start:
-1. Make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
-2. Clone this repository locally.
+- make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
 
 ```shell
-# From root directory run the following command to build the containers:
-docker compose build --no-cache
+# Clone the repository (SSH or HTTPS):
+git clone git@gitlab.com:vin-br/arc.git # SSH
+git clone https://gitlab.com/vin-br/arc.git # HTTPS
 
-# Start the containers using:
-docker compose up -d
+# From root directory, pull and start the containers:
+docker compose up
 
+# The images will be automatically pulled from Docker Hub on first run
 # Access the app at:
 http://localhost:8000
 
 # To stop the containers, run:
 docker compose down
 
-# To view logs, use:
-docker compose logs -f
+# To update to the latest images:
+docker compose pull
+docker compose up
 ```
 
 The app should now be running locally on your machine through Docker containers and accessible at the specified URL: `http://localhost:8000`
 
-### Option B - Local Dev setup
+> The Docker backend image includes the necessary model weights, so no additional download is required.
 
-**Installation steps to set up the project locally using uv:**
+##  Development Installation
+
+### Option A - Using Docker Developer Setup
+
 Before you start:
-- clone this repository locally.
+- make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
 
 ```shell
+# Clone the repository with SSH:
+git clone git@gitlab.com:vin-br/arc.git
+
+# From root directory, build and start the development containers:
+docker compose -f docker-compose.dev.yml up --build
+
+# This will:
+# - Build images locally from Dockerfiles
+# - Mount local code for live reload during development
+# - Use local model files from ./models directory
+
+# Access the app at:
+http://localhost:8000
+
+# To stop the containers, run:
+docker compose -f docker-compose.dev.yml down
+
+# To rebuild without cache:
+docker compose -f docker-compose.dev.yml build --no-cache
+
+# To view logs, use:
+docker compose -f docker-compose.dev.yml logs -f
+```
+
+**Developer setup includes:**
+- Live code reloading (code changes reflect immediately)
+- Local model weights for testing different versions
+- Access to source code for debugging
+
+### Option B - Local Developer setup
+
+**Installation steps to set up the project locally using uv:**
+
+Before you start:
+- make sure you have curl installed on your machine if you are on macOS/Linux.
+
+```shell
+# clone the repository with SSH:
+git clone git@gitlab.com:vin-br/arc.git
+
 # Install uv (on macOS/Linux)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Or alternatively on Windows:
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# if uv install fails, check the documentation at https://docs.astral.sh/uv/ for other installation methods.
 
 # From root directory, install Python 3.14.2 with uv:
 uv python install 3.14.2
@@ -113,6 +163,7 @@ Steps taken to clean the dataset:
 - [Ruff](https://docs.astral.sh/ruff/)
 - [Ty](https://docs.astral.sh/ty/)
 - [Docker](https://docs.docker.com/manuals/)
+- [GitLab CI/CD Docs](https://docs.gitlab.com/ee/ci/)
 
 ## Disclamer
 
