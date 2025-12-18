@@ -18,14 +18,11 @@ Check out this [video](path/to/demo.mp4) for a demonstration on how to start and
 
 ## Installation
 
-1. Make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
-2. Clone this repository.
-
 ### Option A - Using Docker (recommended)
 
 Before you start:
-- make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine
-- clone this repository locally.
+1. Make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
+2. Clone this repository locally.
 
 ```shell
 # From root directory run the following command to build the containers:
@@ -61,6 +58,11 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 
 # From root directory, install Python 3.14.2 with uv:
 uv python install 3.14.2
+
+# Create and activate a virtual environment:
+uv venv --python 3.14.2
+source .venv/bin/activate # On macOS/Linux or WSL/Git Bash
+.venv\Scripts\activate # On Windows / PowerShell
 
 # Install the dependencies:
 uv sync --group dev
