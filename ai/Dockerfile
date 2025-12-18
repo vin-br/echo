@@ -19,6 +19,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY ai ./ai/
 COPY shared ./shared/
 
+# Bake in models
+COPY models/ ./models/
+
 EXPOSE 8001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
