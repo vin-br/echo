@@ -64,3 +64,4 @@ venv.bak/
 .pytest_cache/
 .coverage
 .htmlcov/
+htmlcov
