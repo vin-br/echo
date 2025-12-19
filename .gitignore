@@ -65,3 +65,9 @@ venv.bak/
 .coverage
 .htmlcov/
 htmlcov
+
+# IaC: Ansible and Vagrant
+*.retry
+playbooks/*.retry
+.vagrant/
+*.log
