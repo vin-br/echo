@@ -15,28 +15,29 @@ spec:
       labels:
         app: arc-backend
     spec:
+      initContainers:
+      - name: setup
+        image: busybox
+        command: ['sh', '-c', 'mkdir -p /app/ai/results']
+        volumeMounts:
+        - name: results
+          mountPath: /app/ai/results
       containers:
       - name: backend
         image: vinbr/arc-backend:latest
         ports:
         - containerPort: 8000
         volumeMounts:
-        - name: data
-          mountPath: /app/data
+        - name: results
+          mountPath: /app/ai/results
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8000
-          initialDelaySeconds: 40
+          initialDelaySeconds: 120
           periodSeconds: 30
           timeoutSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /healthz
-            port: 8000
-          initialDelaySeconds: 20
-          periodSeconds: 10
+          failureThreshold: 3
       volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: arc-data-pvc
+      - name: results
+        emptyDir: {}

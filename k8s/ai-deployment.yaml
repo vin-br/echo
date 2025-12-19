@@ -25,15 +25,6 @@ spec:
           mountPath: /app/data
         stdin: true
         tty: true
-        livenessProbe:
-          exec:
-            command:
-            - python
-            - -c
-            - "import sys; sys.exit(0)"
-          initialDelaySeconds: 20
-          periodSeconds: 30
-          timeoutSeconds: 5
       volumes:
       - name: data
         persistentVolumeClaim:
