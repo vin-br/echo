@@ -87,7 +87,25 @@ docker compose -f docker-compose.dev.yml logs -f
 - Local model weights for testing different versions
 - Access to source code for debugging
 
-### Option B - Local Developer setup
+### Option B - Using Kubernetes with Minikube
+
+Before you start:
+- Make sure you have [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) installed
+- Make sure you have [kubectl](https://kubernetes.io/docs/tasks/tools/) installed
+
+For detailed Kubernetes deployment instructions, see [k8s/README.md](k8s/README.md)
+
+```shell
+# Start Minikube and deploy the app:
+minikube start
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+
+# Access the application (may take a minute for model to load)
+minikube service arc-backend -n arc
+```
+
+### Option C - Local Developer setup
 
 **Installation steps to set up the project locally using uv:**
 
@@ -126,6 +144,15 @@ uv run uvicorn backend.app.main:app --reload
 
 The app should now be running locally on your machine with a local install and accessible at the specified URL: ```http://localhost:8000```.
 
+## Swagger API Documentation
+
+The API documentation is automatically generated using FastAPI and can be accessed via Swagger UI at the following URL when the application is running:
+
+```shell
+# Swagger UI
+http://localhost:8000/docs
+```
+
 ## Unit testing
 
 ```shell
@@ -137,15 +164,6 @@ uv run pytest backend/tests/ --cov=backend/app --cov=ai --cov-report=term-missin
 
 # Run Test Coverage with an HTML report
 uv run pytest --cov=backend --cov-report=html
-```
-
-## Swagger API Documentation
-
-The API documentation is automatically generated using FastAPI and can be accessed via Swagger UI at the following URL when the application is running:
-
-```shell
-# Swagger UI
-http://localhost:8000/docs
 ```
 
 ## Resources
