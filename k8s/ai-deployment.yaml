@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arc-ai
+  namespace: arc
+  labels:
+    app: arc-ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: arc-ai
+  template:
+    metadata:
+      labels:
+        app: arc-ai
+    spec:
+      containers:
+      - name: ai
+        image: vinbr/arc-ai:latest
+        ports:
+        - containerPort: 8001
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+        stdin: true
+        tty: true
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "import sys; sys.exit(0)"
+          initialDelaySeconds: 20
+          periodSeconds: 30
+          timeoutSeconds: 5
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: arc-data-pvc

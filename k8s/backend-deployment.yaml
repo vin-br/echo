@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arc-backend
+  namespace: arc
+  labels:
+    app: arc-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: arc-backend
+  template:
+    metadata:
+      labels:
+        app: arc-backend
+    spec:
+      containers:
+      - name: backend
+        image: vinbr/arc-backend:latest
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: arc-data-pvc
