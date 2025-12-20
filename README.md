@@ -10,8 +10,9 @@ Web-based app to detect brain tumors from MRI images using a Convolutional Neura
 
 ### Demo
 
-Check out this [video](demo.mp4) for a demonstration on how to start and use the app.
+![Demo Video](https://raw.githubusercontent.com/vin-br/arc/devops/demo.mp4)
 
+Check out this [video](demo.mp4) for a demonstration on how to start and use the app.
 
 ### Visuals
 
