@@ -4,17 +4,36 @@
 
 Web-based app to detect brain tumors from MRI images using a Convolutional Neural Network (CNN) model.
 
+---
+
 ## Overview
 
 ### Demo
 
-Check out this [video](path/to/demo.mp4) for a demonstration on how to start and use the app.
+Check out this [video](demo.mp4) for a demonstration on how to start and use the app.
+
 
 ### Visuals
 
-<img src="path/to/screenshot_1.png" style="width: 100%; height: auto;">
+<figure style="max-width:800px;margin:0 auto;">
+  <img src="screenshots/app-overview-1.png" alt="Arc App Overview - Homepage" style="width:auto;height:auto;display:block;">
+  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC Homepage — ARC main landing with upload and predictions</figcaption>
+</figure>
 
-<img src="path/to/screenshot_3.png" style="width: 100%; height: auto;">
+---
+
+<figure style="max-width:800px;margin:0 auto;">
+  <img src="screenshots/app-overview-2.png" alt="Arc App Overview - Image uploaded and shown" style="width:auto;height:auto;display:block;">
+  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC Image Uploaded — Displaying the uploaded MRI image</figcaption>
+</figure>
+
+---
+
+<figure style="max-width:800px;margin:0 auto;">
+  <img src="screenshots/app-overview-3.png" alt="Arc App Overview - Prediction" style="width:auto;height:auto;display:block;">
+  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC Prediction — Model prediction displayed with confidence score</figcaption>
+</figure>
+
 
 ### Technical Stack
 
@@ -26,6 +45,7 @@ Check out this [video](path/to/demo.mp4) for a demonstration on how to start and
 - **Infrastructure as Code (IaC):** Vagrant + Ansible
 - **CI/CD:** GitLab CI/CD
 - **Monitoring:** Netdata Container
+
 
 ### Project Structure
 
@@ -47,6 +67,7 @@ Check out this [video](path/to/demo.mp4) for a demonstration on how to start and
 └── ...                     # Other configuration and resource files
 ```    
 
+
 ##  User Installation
 
 **Using Pre-built Docker Images**
@@ -54,7 +75,7 @@ Public images are available on Docker Hub for easy user setup:
 - [ARC AI on Docker Hub](https://hub.docker.com/r/vinbr/arc-backend)
 - [ARC Backend on Docker Hub](https://hub.docker.com/r/vinbr/arc-backend)
 
-![Docker Hub Repositories](screenshots/arc-docker-hub.png){width=100% height=auto}
+<img src="screenshots/docker-hub-repositories.png" alt="Docker Hub Repositories with ARC AI and Backend Images" style="max-width:auto;height:auto;">
 
 Before you start:
 - make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
@@ -174,9 +195,9 @@ vagrant destroy   # Delete the VM
 
 Starting the ARC VM with Vagrant should look like this:
 
-<img src="screenshots/arc-vm-1-vagrant.png" alt="Terminal `vagrant up` command" style="max-width:100%;height:auto;">
+<img src="screenshots/vagrant-vm-1.png" alt="Terminal `vagrant up` command" style="max-width:auto;height:auto;">
 
-<img src="screenshots/arc-vm-2-vagrant.png" alt="Terminal `vagrant provision` command" style="max-width:100%;height:auto;">
+<img src="screenshots/vagrant-vm-2.png" alt="Terminal `vagrant provision` command" style="max-width:auto;height:auto;">
 
 ### Option D - Local Developer setup
 
@@ -226,6 +247,8 @@ The API documentation is automatically generated using FastAPI and can be access
 http://localhost:8000/docs
 ```
 
+<img src="screenshots/app-swagger-ui.png" alt="Swagger UI showing full API documentation" style="max-width:auto;height:auto;">
+
 ## CI/CD Pipeline
 
 The project uses **GitLab CI/CD** with 3 stages:
@@ -266,7 +289,7 @@ uv run pytest --cov=backend --cov-report=html
 
 To monitor the Docker containers running the ARC application, you can use Netdata Container. It is started with the Docker Compose setup and provides real-time monitoring of system and application metrics.
 
-![Netdata Dashboard](screenshots/arc-monitoring-netdata.png){width=100% height=auto}
+<img src="screenshots/netdata-monitoring.png" alt="Netdata Dashboard" style="max-width:auto;height:auto;">
 
 ## Resources
 
