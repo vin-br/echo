@@ -1,8 +1,8 @@
-# ARC
+# ARC - AI Radiology Copilot 
 
-AI Radiology Copilot (ARC) 
+[![GitLab](https://img.shields.io/badge/GitLab-Repository-ff6d28?style=for-the-badge&logo=gitlab&logoColor=white&logoWidth=20)](https://gitlab.com/vin-br/arc) [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github&logoColor=white&logoWidth=20)](https://github.com/vin-br/arc) [![Docker](https://img.shields.io/badge/Docker-Repository-2396ed?style=for-the-badge&logo=docker&logoColor=white&logoWidth=20)](https://hub.docker.com/repository/docker/vinbr/) [![CI/CD](https://img.shields.io/gitlab/pipeline/vin-br/arc/main?style=for-the-badge&logo=gitlab&logoColor=white&label=CI%2FCD)](https://gitlab.com/vin-br/arc/devi/pipelines) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0e76a8?style=for-the-badge&logo=linkedin&logoColor=white&logoWidth=20)](https://www.linkedin.com/in/vin-br/)
 
-Web-based app to detect brain tumors from MRI images using a Convolutional Neural Network (CNN) model. 
+Web-based app to detect brain tumors from MRI images using a Convolutional Neural Network (CNN) model.
 
 ## Overview
 
@@ -16,12 +16,45 @@ Check out this [video](path/to/demo.mp4) for a demonstration on how to start and
 
 <img src="path/to/screenshot_3.png" style="width: 100%; height: auto;">
 
+### Technical Stack
+
+- **AI Model:** Convolutional Neural Network (ConvNeXt) using PyTorch
+- **Backend:** FastAPI
+- **Frontend:** HTML, CSS, JavaScript
+- **Containerization:** Docker, Docker Compose
+- **Orchestration:** Kubernetes (Minikube for local development)
+- **Infrastructure as Code (IaC):** Vagrant + Ansible
+- **CI/CD:** GitLab CI/CD
+- **Monitoring:** Netdata Container
+
+### Project Structure
+
+```
+├── ai/                     # AI models and training scripts
+├── backend/                # FastAPI backend application
+├── data/                   # Dataset files
+├── frontend/               # Frontend web application (HTML, CSS, JS)
+├── iac/                    # Infrastructure as Code (Vagrant + Ansible)
+├── k8s/                    # Kubernetes deployment manifests
+├── models/                 # Pre-trained model weights
+├── screenshots/            # Screenshots and visual assets
+├── scripts/                # Utility scripts
+├── shared/                 # Shared utilities and resources
+├── docker-compose.yml      # Docker Compose configuration
+├── docker-compose.dev.yml  # Docker Compose for development
+├── .gitlab-ci.yml          # GitLab CI/CD pipeline configuration
+├── README.md               # Project documentation
+└── ...                     # Other configuration and resource files
+```    
+
 ##  User Installation
 
 **Using Pre-built Docker Images**
 Public images are available on Docker Hub for easy user setup:
 - [ARC AI on Docker Hub](https://hub.docker.com/repository/docker/vinbr/arc-ai/general)
 - [ARC Backend on Docker Hub](https://hub.docker.com/repository/docker/vinbr/arc-backend/general)
+
+![Docker Hub Repositories](screenshots/arc-docker-hub.png){width=100% height=auto}
 
 Before you start:
 - make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
