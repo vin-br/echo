@@ -26,7 +26,7 @@ TRAINING_DATASET = DATA_DIR / "training"
 TESTING_DATASET = DATA_DIR / "testing"
 
 
-def verify_paths() -> None:
+def verify_paths(skip_files: bool = False) -> None:
     """Ensure core directories/files exist before depending on them."""
     required_dirs = {
         "PROJECT_ROOT": PROJECT_ROOT,
@@ -44,9 +44,10 @@ def verify_paths() -> None:
         if not path.is_dir():
             missing.append(f"{name} -> {path}")
 
-    for name, path in required_files.items():
-        if not path.is_file():
-            missing.append(f"{name} -> {path}")
+    if not skip_files:
+        for name, path in required_files.items():
+            if not path.is_file():
+                missing.append(f"{name} -> {path}")
 
     if missing:
         details = "\n - ".join(missing)

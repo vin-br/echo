@@ -1,5 +1,6 @@
 """FastAPI Back-end"""
 
+import os
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
@@ -20,7 +21,8 @@ from backend.app.inference import predict_image
 from backend.app.database import MetricsDatabase
 
 # Verify necessary paths exist from modules package
-verify_paths()
+# Skip file verification in CI environment where models don't exist
+verify_paths(skip_files=os.getenv("CI") is not None)
 
 # Initialize Jinja2 templates
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
