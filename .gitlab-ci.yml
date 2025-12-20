@@ -14,6 +14,14 @@ lint:python:
   image: python:3.14.2-slim
   variables:
     UV_SYSTEM_PYTHON: "1"
+    UV_CACHE_DIR: ".uv-cache"
+    UV_LINK_MODE: "symlink"
+  cache:
+    key:
+      files:
+        - pyproject.toml
+    paths:
+      - .uv-cache/
   before_script:
     - apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
     - curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -37,6 +45,14 @@ test:backend:
   variables:
     UV_SYSTEM_PYTHON: "1"
     CI: "true"
+    UV_CACHE_DIR: ".uv-cache"
+    UV_LINK_MODE: "symlink"
+  cache:
+    key:
+      files:
+        - backend/pyproject.toml
+    paths:
+      - .uv-cache/
   before_script:
     - apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
     - curl -LsSf https://astral.sh/uv/install.sh | sh

@@ -1,9 +1,12 @@
 """Pytest configuration for backend tests"""
 
 import json
+import os
 import pytest
 import tempfile
+import torch
 from pathlib import Path
+from unittest.mock import Mock, patch
 from fastapi.testclient import TestClient
 from app.database import MetricsDatabase
 from app.main import app
@@ -57,3 +60,21 @@ def sample_image_bytes():
         "89000000097048597300000b1300000b1301009a9c180000000a49444154789c"
         "6300010000050001f59927c70000000049454e44ae426082"
     )
+
+
+@pytest.fixture(autouse=True)
+def mock_model_in_ci():
+    """Mock model loading in CI environment to avoid FileNotFoundError."""
+    if os.getenv("CI"):
+        # Create a mock model that returns realistic predictions
+        mock_model = Mock()
+        mock_model.eval = Mock(return_value=mock_model)
+        
+        # Mock forward pass to return tensor with logits
+        mock_output = torch.tensor([[0.1, 0.2, 0.3, 0.4]])  # 4 classes
+        mock_model.return_value = mock_output
+        
+        with patch('backend.app.inference.load_model', return_value=mock_model):
+            yield mock_model
+    else:
+        yield None
