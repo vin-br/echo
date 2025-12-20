@@ -1,3 +1,4 @@
+import os
 import pytest
 from backend.app.inference import predict_image, _load_image, load_model
 from shared.paths import MODEL_PATH
@@ -66,12 +67,14 @@ def test_load_image_returns_rgb_mode(sample_image_bytes):
     assert image.mode == "RGB"
 
 
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Model file not available in CI")
 def test_model_loads_successfully():
     """Test model loads without errors."""
     model = load_model(MODEL_PATH)
     assert model is not None
 
 
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Model file not available in CI")
 def test_model_caching():
     """Test model is cached after first load."""
     model1 = load_model(MODEL_PATH)
