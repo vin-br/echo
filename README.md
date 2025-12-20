@@ -1,20 +1,16 @@
 # ARC - AI Radiology Copilot 
 
-[![GitLab](https://img.shields.io/badge/GitLab-Repository-ff6d28?style=for-the-badge&logo=gitlab&logoColor=white&logoWidth=20)](https://gitlab.com/vin-br/arc) [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github&logoColor=white&logoWidth=20)](https://github.com/vin-br/arc) [![Docker](https://img.shields.io/badge/Docker-Repository-2396ed?style=for-the-badge&logo=docker&logoColor=white&logoWidth=20)](https://hub.docker.com/u/vinbr) [![CI/CD](https://img.shields.io/gitlab/pipeline/vin-br/arc/main?style=for-the-badge&logo=gitlab&logoColor=white&label=CI%2FCD)](https://gitlab.com/vin-br/arc/devi/pipelines) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0e76a8?style=for-the-badge&logo=linkedin&logoColor=white&logoWidth=20)](https://www.linkedin.com/in/vin-br/)
+[![GitLab](https://img.shields.io/badge/GitLab-Repository-ff6d28?style=for-the-badge&logo=gitlab&logoColor=white&logoWidth=20)](https://gitlab.com/vin-br/arc) [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github&logoColor=white&logoWidth=20)](https://github.com/vin-br/arc) [![Docker](https://img.shields.io/badge/Docker-Repository-2396ed?style=for-the-badge&logo=docker&logoColor=white&logoWidth=20)](https://hub.docker.com/u/vinbr) [![CI/CD](https://img.shields.io/gitlab/pipeline/vin-br/arc/main?style=for-the-badge&logo=gitlab&logoColor=white&label=CI%2FCD)](https://gitlab.com/vin-br/arc/-/pipelines?ref=main) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0e76a8?style=for-the-badge&logo=linkedin&logoColor=white&logoWidth=20)](https://www.linkedin.com/in/vin-br/)
 
-Web-based app to detect brain tumors from MRI images using a Convolutional Neural Network (CNN) model.
+ARC is a copilot web-app to help analyze and detect brain tumors from MRI images.
 
 ---
 
-## Overview
-
-### Demo
-
-![Demo Video](https://raw.githubusercontent.com/vin-br/arc/devops/demo.mp4)
+## Demo
 
 Check out this [video](demo.mp4) for a demonstration on how to start and use the app.
 
-### Visuals
+## Overview
 
 <figure style="max-width:800px;margin:0 auto;">
   <img src="screenshots/app-overview-1.png" alt="Arc App Overview - Homepage" style="width:auto;height:auto;display:block;">
@@ -35,18 +31,30 @@ Check out this [video](demo.mp4) for a demonstration on how to start and use the
   <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC Prediction — Model prediction displayed with confidence score</figcaption>
 </figure>
 
+---
 
-### Technical Stack
+## Use Case
 
-- **AI Model:** Convolutional Neural Network (ConvNeXt) using PyTorch
-- **Backend:** FastAPI
-- **Frontend:** HTML, CSS, JavaScript
-- **Containerization:** Docker, Docker Compose
-- **Orchestration:** Kubernetes (Minikube for local development)
-- **Infrastructure as Code (IaC):** Vagrant + Ansible
-- **CI/CD:** GitLab CI/CD
-- **Monitoring:** Netdata Container
+<figure style="max-width:800px;margin:0 auto;">
+  <img src="screenshots/app-use-case-1.png" alt="Arc App - Upload Case Focus without an MRI" style="width:auto;height:auto;display:block;">
+  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC App - Upload Case Focus</figcaption>
+</figure>
 
+---
+
+<figure style="max-width:800px;margin:0 auto;">
+  <img src="screenshots/app-use-case-2.png" alt="Arc App - Upload Case Focus with an MRI" style="width:auto;height:auto;display:block;">
+  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC App - Upload Case Focus with an MRI</figcaption>
+</figure>
+
+---
+
+<figure style="max-width:800px;margin:0 auto;">
+  <img src="screenshots/app-use-case-3.png" alt="Arc App - Prediction Case Focus" style="width:auto;height:auto;display:block;">
+  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC App - Prediction Case Focus</figcaption>
+</figure>
+
+---
 
 ### Project Structure
 
@@ -68,8 +76,24 @@ Check out this [video](demo.mp4) for a demonstration on how to start and use the
 └── ...                     # Other configuration and resource files
 ```    
 
+---
 
-##  User Installation
+### Technical Stack
+
+- **AI Model:** Convolutional Neural Network (ConvNeXt) using PyTorch
+- **Backend:** FastAPI
+- **Frontend:** HTML, CSS, JavaScript
+- **Containerization:** Docker, Docker Compose
+- **Orchestration:** Kubernetes (Minikube for local development)
+- **Infrastructure as Code (IaC):** Vagrant + Ansible
+- **CI/CD:** GitLab CI/CD
+- **Monitoring:** Netdata Container
+
+---
+
+##  Installation Options
+
+### Option A - Using Public Docker Hub Images
 
 **Using Pre-built Docker Images**
 Public images are available on Docker Hub for easy user setup:
@@ -92,7 +116,17 @@ docker compose up
 # The images will be automatically pulled from Docker Hub on first run
 # Access the app at:
 http://localhost:8000
+```
 
+The app should now be running locally on your machine through Docker containers and accessible at the specified URL: `http://localhost:8000`
+
+> The Docker backend image includes the necessary model weights, so no additional download is required.
+
+<img src="screenshots/docker-compose.png" alt="Docker Compose Prod Terminal Overview" style="max-width:auto;height:auto;">
+
+<img src="screenshots/docker-containers.png" alt="Docker Containers in Docker Desktop" style="max-width:auto;height:auto;">
+
+```shell
 # To stop the containers, run:
 docker compose down
 
@@ -101,13 +135,9 @@ docker compose pull
 docker compose up
 ```
 
-The app should now be running locally on your machine through Docker containers and accessible at the specified URL: `http://localhost:8000`
+--- 
 
-> The Docker backend image includes the necessary model weights, so no additional download is required.
-
-##  Development Installation
-
-### Option A - Using Docker Developer Setup
+### Option B - Using Docker Developer Setup
 
 Before you start:
 - make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
@@ -126,15 +156,20 @@ docker compose -f docker-compose.dev.yml up --build
 
 # Access the app at:
 http://localhost:8000
+```
 
+<img src="screenshots/docker-compose-dev.png" alt="Docker Compose Development Terminal Overview" style="max-width:auto;height:auto;">
+
+---
+
+<img src="screenshots/docker-containers-dev.png" alt="Docker Containers in Docker Desktop" style="max-width:auto;height:auto;">
+
+```shell
 # To stop the containers, run:
 docker compose -f docker-compose.dev.yml down
 
 # To rebuild without cache:
 docker compose -f docker-compose.dev.yml build --no-cache
-
-# To view logs, use:
-docker compose -f docker-compose.dev.yml logs -f
 ```
 
 **Developer setup includes:**
@@ -142,7 +177,9 @@ docker compose -f docker-compose.dev.yml logs -f
 - Local model weights for testing different versions
 - Access to source code for debugging
 
-### Option B - Using Kubernetes with Minikube
+---
+
+### Option C - Using Kubernetes with Minikube
 
 Before you start:
 - Make sure you have [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) installed
@@ -151,16 +188,34 @@ Before you start:
 For detailed Kubernetes deployment instructions, see [k8s/README.md](k8s/README.md)
 
 ```shell
-# Start Minikube and deploy the app:
+# # From root directory, start and deploy:
 minikube start
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/
-
-# Access the application (may take a minute for model to load)
-minikube service arc-backend -n arc
 ```
 
-### Option C - Using Vagrant + Ansible (IaC)
+<img src="screenshots/minikube-start-deploy.png" alt="Minikube Start and Deploy Terminal Overview" style="max-width:auto;height:auto;">
+
+```shell
+# Check deployment status
+# Verify that the backend and AI pods are running before continuing
+kubectl get all -n arc
+
+# Access the application
+# Note: Backend may take a minute to load the ML model on first startup
+# Be patient!
+
+# Using minikube service (tested with Docker driver on macOS)
+minikube service arc-backend -n arc
+# This will open your browser automatically
+```
+
+
+<img src="screenshots/minikube-service.png" alt="Minikube Service Terminal Overview" style="max-width:auto;height:auto;">
+
+---
+
+### Option D - Using Vagrant + Ansible (IaC)
 
 Before you start, make sure you have the following installed:
 - [Vagrant](https://www.vagrantup.com/downloads)
@@ -200,7 +255,7 @@ Starting the ARC VM with Vagrant should look like this:
 
 <img src="screenshots/vagrant-vm-2.png" alt="Terminal `vagrant provision` command" style="max-width:auto;height:auto;">
 
-### Option D - Local Developer setup
+### Option E - Local Developer setup
 
 **Installation steps to set up the project locally using uv:**
 
@@ -237,6 +292,8 @@ uv sync --group dev
 uv run uvicorn backend.app.main:app --reload
 ```
 
+<img src="screenshots/uvicorn-run-dev.png" alt="Uvicorn Run Terminal Overview" style="max-width:auto;height:auto;">
+
 The app should now be running locally on your machine with a local install and accessible at the specified URL: ```http://localhost:8000```.
 
 ## Swagger API Documentation
@@ -250,14 +307,21 @@ http://localhost:8000/docs
 
 <img src="screenshots/app-swagger-ui.png" alt="Swagger UI showing full API documentation" style="max-width:auto;height:auto;">
 
+---
+
 ## CI/CD Pipeline
 
 The project uses **GitLab CI/CD** with 3 stages:
-- **Lint** → Runs `ruff` on Python code
-- **Test** → Runs `pytest` on backend
-- **Build** → Builds and pushes Docker images to GitLab Container Registry
+1. **Lint** → Runs `ruff` on Python code
+2. **Test** → Runs `pytest` on backend
+3. **Build** → Builds and pushes Docker images to GitLab Container Registry
 
-**Quick Setup:**
+On develop branch, only Lint and Test stages run.
+On main branch, all 3 stages run.
+
+<img src="screenshots/cicd-steps.png" alt="GitLab CI/CD Steps Overview" style="max-width:auto;height:auto;">
+
+**Setup:**
 
 ```shell
 # 1. Push to GitLab
@@ -267,30 +331,57 @@ git push gitlab main
 # 2. Configure CI/CD Variables
 # Go to Settings → CI/CD → Variables and add:
 # - CI_REGISTRY: registry.gitlab.com
-# - CI_REGISTRY_USER: Your GitLab username
+# - CI_REGISTRY_USER: GitLab username
 # - CI_REGISTRY_PASSWORD: Personal access token (with api, read_registry, write_registry scopes)
 ```
 
-For detailed CI/CD setup including troubleshooting and maintenance, see [GITLAB_CI_SETUP.md](GITLAB_CI_SETUP.md)
+<img src="screenshots/cicd-main-validation.png" alt="GitLab CI/CD Main Branch Validation Overview" style="max-width:auto;height:auto;">
+
+<img src="screenshots/cicd-develop-validation.png" alt="GitLab CI/CD Develop Branch Validation Overview" style="max-width:auto;height:auto;">
+
+
+---
 
 ## Unit testing
 
 ```shell
 # Run Tests from root with verbose output
 uv run pytest backend/tests/ -v --tb=auto
+```
 
-# Run Test Coverage with a report in the terminal
-uv run pytest backend/tests/ --cov=backend/app --cov=ai --cov-report=term-missing
+<img src="screenshots/pytest-run.png" alt="Pytest Run Terminal Overview" style="max-width:auto;height:auto;">
 
+
+```shell
+# Run Test Coverage for the backend with a report in the terminal
+uv run pytest backend/tests/ --cov=backend/app --cov-report=term-missing
+```
+
+<img src="screenshots/pytest-coverage.png" alt="Pytest Coverage Terminal Overview" style="max-width:auto;height:auto;">
+
+
+```shell
 # Run Test Coverage with an HTML report
 uv run pytest --cov=backend --cov-report=html
 ```
+
+<img src="screenshots/pytest-html.png" alt="Pytest HTML Overview" style="max-width:auto;height:auto;">
+
+---
 
 ## Monitoring Containers with Netdata Container
 
 To monitor the Docker containers running the ARC application, you can use Netdata Container. It is started with the Docker Compose setup and provides real-time monitoring of system and application metrics.
 
-<img src="screenshots/netdata-monitoring.png" alt="Netdata Dashboard" style="max-width:auto;height:auto;">
+<img src="screenshots/netdata-monitoring-1.png" alt="Netdata Homepage" style="max-width:auto;height:auto;">
+
+<img src="screenshots/netdata-monitoring-2.png" alt="Netdata Dashboard" style="max-width:auto;height:auto;">
+
+---
+
+## Model Metrics
+
+<img src="screenshots/metrics-leaderboard.png" alt="GitLab CI/CD Main Branch Validation Overview" style="max-width:auto;height:auto;">
 
 ## Resources
 
