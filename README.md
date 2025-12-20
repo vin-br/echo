@@ -141,7 +141,7 @@ minikube service arc-backend -n arc
 ### Option C - Using Vagrant + Ansible (IaC)
 
 Before you start, make sure you have the following installed:
-- [Vagrant](https://www.vagrantup.com/downloads), 
+- [Vagrant](https://www.vagrantup.com/downloads)
 - [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 - [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 
@@ -174,8 +174,9 @@ vagrant destroy   # Delete the VM
 
 Starting the ARC VM with Vagrant should look like this:
 
-![Terminal `vagrant up`](screenshots/arc-vm-1-vagrant.png){width=100% height=auto}
-![Terminal `vagrant provision`](screenshots/arc-vm-2-vagrant.png){width=100% height=auto}
+<img src="screenshots/arc-vm-1-vagrant.png" alt="Terminal `vagrant up` command" style="max-width:100%;height:auto;">
+
+<img src="screenshots/arc-vm-2-vagrant.png" alt="Terminal `vagrant provision` command" style="max-width:100%;height:auto;">
 
 ### Option D - Local Developer setup
 
