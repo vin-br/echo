@@ -381,51 +381,75 @@ main {
   color: #1f1f24;
 }
 
-.alert {
-  margin-top: 1rem;
+/* Snackbar styles */
+.snackbar-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.snackbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.9rem 1.2rem;
+  padding: 0.85rem 1.1rem;
   border-radius: 0.85rem;
   font-family: "Space Grotesk", sans-serif;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #fff;
-  background: linear-gradient(120deg, rgba(255, 143, 120, 0.98), rgba(255, 120, 160, 0.95));
-  box-shadow: 0 8px 22px rgba(255, 143, 120, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  width: 100%;
-  box-sizing: border-box;
-  word-break: break-word;
+  background: linear-gradient(120deg, #ff8f78, #ff6f61);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(255, 111, 97, 0.35);
+  pointer-events: auto;
+  animation: slideIn 0.25s ease-out;
+  max-width: 280px;
 }
 
-.alert--info {
-  background: linear-gradient(120deg, rgba(255, 165, 130, 0.98), rgba(255, 185, 120, 0.93));
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.alert--error {
-  background: linear-gradient(120deg, rgba(255, 96, 112, 0.99), rgba(255, 70, 110, 0.94));
+.snackbar--info {
+  background: linear-gradient(120deg, #6B7FE8, #5568D3);
+  box-shadow: 0 8px 20px rgba(107, 127, 232, 0.35);
 }
 
-.alert--success {
-  background: linear-gradient(120deg, rgba(71, 203, 141, 0.98), rgba(43, 174, 146, 0.93));
+.snackbar--error {
+  background: linear-gradient(120deg, #ff6b6b, #ee5a52);
+  box-shadow: 0 8px 20px rgba(238, 90, 82, 0.35);
 }
 
-.alert-close {
+.snackbar--success {
+  background: linear-gradient(120deg, #51cf66, #37b24d);
+  box-shadow: 0 8px 20px rgba(55, 178, 77, 0.35);
+}
+
+.snackbar-close {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  font-size: 1rem;
-  color: inherit;
+  border: none;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
   line-height: 1;
-  border-radius: 50%;
-  width: 1.75rem;
-  height: 1.75rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(255, 255, 255, 0.15);
+  padding: 0.2rem;
+  transition: color 0.2s ease;
+}
+
+.snackbar-close:hover {
+  color: #fff;
+}
+
+.snackbar-close:hover {
+  color: #fff;
 }
 
 .hidden {

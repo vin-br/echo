@@ -61,14 +61,6 @@
                             <button class="primary-action" type="submit" id="submit-button">Ask ARC</button>
                             <button class="secondary-action" type="button" id="clear-button">Clear</button>
                         </div>
-                        {% set active_message = messages[0] if messages else None %}
-                        <div id="alert"
-                            class="alert {% if active_message %}alert--{{ active_message.level }}{% else %}hidden{% endif %}"
-                            role="alert" aria-live="assertive">
-                            <span id="alert-text">{% if active_message %}{{ active_message.text }}{% endif %}</span>
-                            <button type="button" id="alert-close" class="alert-close"
-                                aria-label="Dismiss">&times;</button>
-                        </div>
                     </form>
 
                     <div class="status-panel">
@@ -137,6 +129,17 @@
         </div>
         <p>Vincent Boettcher</p>
     </footer>
+
+    {% set active_message = messages[0] if messages else None %}
+    <div id="snackbar-container" class="snackbar-container">
+        <div id="alert"
+            class="snackbar {% if active_message %}snackbar--{{ active_message.level }}{% else %}hidden{% endif %}"
+            role="alert" aria-live="assertive">
+            <span id="alert-text">{% if active_message %}{{ active_message.text }}{% endif %}</span>
+            <button type="button" id="alert-close" class="snackbar-close" aria-label="Dismiss">&times;</button>
+        </div>
+    </div>
+
     <script>
         const form = document.getElementById('upload-form');
         const fileInput = document.getElementById('file1');
@@ -155,10 +158,10 @@
 
         const showAlert = (message, type = 'info') => {
             alertText.textContent = message;
-            alertBox.classList.remove('hidden', 'alert--error', 'alert--info', 'alert--success');
-            alertBox.classList.add(`alert--${type}`);
+            alertBox.classList.remove('hidden', 'snackbar--error', 'snackbar--info', 'snackbar--success');
+            alertBox.classList.add(`snackbar--${type}`);
             clearTimeout(hideAlertTimeout);
-            hideAlertTimeout = setTimeout(hideAlert, 5000);
+            hideAlertTimeout = setTimeout(hideAlert, 4000);
         };
 
         const clearAll = () => {
@@ -185,7 +188,7 @@
                 document.getElementById('confidence-status').textContent = '—';
                 // persist filename so it can be restored after a form submit + reload
                 try { sessionStorage.setItem('uploadedFilename', name); } catch (e) { }
-                showAlert('Image selected. Ready to analyze.', 'success');
+                showAlert('Image added', 'success');
             } else {
                 fileStatus.textContent = 'No file selected';
                 fileStatus.classList.remove('status-value--active');
@@ -197,9 +200,9 @@
         form.addEventListener('submit', (event) => {
             if (!fileInput.files.length) {
                 event.preventDefault();
-                showAlert('Please select an image before asking ARC.', 'error');
+                showAlert('No image selected', 'error');
             } else {
-                showAlert('Uploading image for prediction...', 'info');
+                showAlert('Analyzing...', 'info');
             }
         });
 
@@ -270,6 +273,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             restoreFilename();
             loadLeaderboard();
+            // Auto-hide alert if it's visible on page load (from backend)
+            if (!alertBox.classList.contains('hidden')) {
+                hideAlertTimeout = setTimeout(hideAlert, 5000);
+            }
         });
     </script>
 </body>
