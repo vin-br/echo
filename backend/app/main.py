@@ -53,8 +53,8 @@ async def lifespan(_: FastAPI):
 
 # Create FastAPI app with lifespan event
 app = FastAPI(
-    title="ARC Brain Tumor Classification API",
-    description="API for an AI Radiology Copilot to classify brain tumor images using deep learning models",
+    title="AI Radiology Copilot - ARC API",
+    description="API for an AI assistant to classify brain tumor images using deep learning models",
     version="1.0.0",
     docs_url="/docs",  # Swagger UI
     lifespan=lifespan,
