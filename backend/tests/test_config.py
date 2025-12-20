@@ -1,5 +1,3 @@
-import os
-import pytest
 from shared.paths import MODEL_PATH, RESULTS_DIR, STATIC_DIR, TEMPLATES_DIR, BACKEND_DATA_DIR
 
 
@@ -14,7 +12,6 @@ def test_results_dir_exists():
     assert RESULTS_DIR.is_dir()
 
 
-@pytest.mark.skipif(os.getenv("CI") is not None, reason="Model file not available in CI")
 def test_model_path_exists():
     """Test MODEL_PATH file exists."""
     assert MODEL_PATH.exists()
