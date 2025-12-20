@@ -111,7 +111,7 @@ git clone git@gitlab.com:vin-br/arc.git # SSH
 git clone https://gitlab.com/vin-br/arc.git # HTTPS
 
 # From root directory, pull and start the containers:
-docker compose up
+docker compose up -d
 
 # The images will be automatically pulled from Docker Hub on first run
 # Access the app at:
@@ -132,7 +132,7 @@ docker compose down
 
 # To update to the latest images:
 docker compose pull
-docker compose up
+docker compose up -d
 ```
 
 --- 
