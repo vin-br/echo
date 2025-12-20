@@ -105,7 +105,46 @@ kubectl apply -f k8s/
 minikube service arc-backend -n arc
 ```
 
-### Option C - Local Developer setup
+### Option C - Using Vagrant + Ansible (IaC)
+
+Before you start, make sure you have the following installed:
+- [Vagrant](https://www.vagrantup.com/downloads), 
+- [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+- [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+
+For detailed instructions, see [iac/README.md](iac/README.md)
+
+```shell
+# Navigate to the iac directory
+cd iac
+
+# Start and provision the VM
+vagrant up
+
+# This will:
+# - Create a Fedora 40 VM
+# - Install Python 3.14.2 and dependencies using uv
+# - Start the application as a systemd service
+# - Run a health check
+
+# Access the application at:
+http://localhost:8080
+
+# Or re-run Ansible without recreating the VM
+vagrant provision
+
+# Common commands:
+vagrant halt      # Stop the VM
+vagrant ssh       # Connect to the VM
+vagrant destroy   # Delete the VM
+```
+
+Starting the ARC VM with Vagrant should look like this:
+
+![Terminal `vagrant up`](screenshots/arc-vm-1-vagrant.png){width=100% height=auto}
+![Terminal `vagrant provision`](screenshots/arc-vm-2-vagrant.png){width=100% height=auto}
+
+### Option D - Local Developer setup
 
 **Installation steps to set up the project locally using uv:**
 
@@ -153,6 +192,29 @@ The API documentation is automatically generated using FastAPI and can be access
 http://localhost:8000/docs
 ```
 
+## CI/CD Pipeline
+
+The project uses **GitLab CI/CD** with 3 stages:
+- **Lint** → Runs `ruff` on Python code
+- **Test** → Runs `pytest` on backend
+- **Build** → Builds and pushes Docker images to GitLab Container Registry
+
+**Quick Setup:**
+
+```shell
+# 1. Push to GitLab
+git remote add gitlab https://gitlab.com/vin-br/arc.git
+git push gitlab main
+
+# 2. Configure CI/CD Variables
+# Go to Settings → CI/CD → Variables and add:
+# - CI_REGISTRY: registry.gitlab.com
+# - CI_REGISTRY_USER: Your GitLab username
+# - CI_REGISTRY_PASSWORD: Personal access token (with api, read_registry, write_registry scopes)
+```
+
+For detailed CI/CD setup including troubleshooting and maintenance, see [GITLAB_CI_SETUP.md](GITLAB_CI_SETUP.md)
+
 ## Unit testing
 
 ```shell
@@ -165,6 +227,12 @@ uv run pytest backend/tests/ --cov=backend/app --cov=ai --cov-report=term-missin
 # Run Test Coverage with an HTML report
 uv run pytest --cov=backend --cov-report=html
 ```
+
+## Monitoring Containers with Netdata Container
+
+To monitor the Docker containers running the ARC application, you can use Netdata Container. It is started with the Docker Compose setup and provides real-time monitoring of system and application metrics.
+
+![Netdata Dashboard](screenshots/arc-monitoring-netdata.png){width=100% height=auto}
 
 ## Resources
 
@@ -191,6 +259,11 @@ Steps taken to clean the dataset:
 - [Ty](https://docs.astral.sh/ty/)
 - [Docker](https://docs.docker.com/manuals/)
 - [GitLab CI/CD Docs](https://docs.gitlab.com/ee/ci/)
+- [Kubernetes Docs](https://kubernetes.io/docs/home/)
+- [Minikube Docs](https://minikube.sigs.k8s.io/docs/)
+- [Vagrant Docs](https://developer.hashicorp.com/vagrant/docs)
+- [Vagrant Fedora 40 Bento Box](https://portal.cloud.hashicorp.com/vagrant/discover/bento/fedora-40)
+- [Netdata Docs](https://learn.netdata.cloud/docs/agent/packaging/docker)
 
 ## Disclamer
 
