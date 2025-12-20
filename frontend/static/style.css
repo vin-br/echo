@@ -183,7 +183,62 @@ main {
 .upload-section form {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
+}
+
+/* Two-column card layout */
+.card-columns {
+  display: flex;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.card-col-left {
+  flex: 2;
+  min-width: 0;
+  display: flex;
+}
+
+.card-col-right {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+}
+
+/* Vertical status panel */
+.status-panel-vertical {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0.85rem;
+  border: 1px solid rgba(31, 31, 36, 0.06);
+  min-height: 380px;
+}
+
+.status-panel-vertical .status-header {
+  margin-bottom: 0.25rem;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+/* Responsive: stack on smaller screens */
+@media (max-width: 640px) {
+  .card-columns {
+    flex-direction: column;
+  }
+  
+  .card-col-right {
+    min-width: 100%;
+  }
 }
 
 .status-panel {
@@ -300,6 +355,26 @@ main {
   align-items: center;
   text-align: center;
   transition: border-color 0.3s ease, background 0.3s ease;
+  min-height: 380px;
+  width: 100%;
+}
+
+.upload-dropzone.has-image {
+  border-style: solid;
+  border-color: rgba(31, 31, 36, 0.1);
+  padding: 0.75rem;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  max-height: 360px;
+  border-radius: 0.75rem;
+  object-fit: contain;
+}
+
+.preview-image.hidden {
+  display: none;
 }
 
 .upload-dropzone input[type="file"] {
@@ -315,6 +390,10 @@ main {
   gap: 0.35rem;
   font-family: "Space Grotesk", sans-serif;
   cursor: pointer;
+}
+
+.upload-dropzone label.hidden {
+  display: none !important;
 }
 
 .drop-main {

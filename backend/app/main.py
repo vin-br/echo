@@ -77,6 +77,7 @@ def _base_context(request: Request, **overrides: Any) -> Dict[str, Any]:
         "yolo": False,
         "messages": [],
         "uploaded_filename": None,
+        "uploaded_image": None,
     }
     context.update(overrides)
     return context
@@ -138,7 +139,9 @@ async def classify_image(request: Request, file1: UploadFile = File(...)) -> HTM
         )
         return templates.TemplateResponse(request, "index.html", context)
 
-    success_message = _message("Prediction completed successfully.", "success")
+    import base64
+    uploaded_image_b64 = base64.b64encode(file_bytes).decode("utf-8")
+    success_message = _message("Prediction completed", "success")
     context = _base_context(
         request,
         prediction=prediction["display_label"],
@@ -146,6 +149,7 @@ async def classify_image(request: Request, file1: UploadFile = File(...)) -> HTM
         prediction_made=True,
         messages=[success_message],
         uploaded_filename=file1.filename,
+        uploaded_image=uploaded_image_b64,
     )
     return templates.TemplateResponse(request, "index.html", context)
 

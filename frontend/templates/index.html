@@ -50,53 +50,59 @@
                 </div>
                 <div class="card">
                     <form id="upload-form" method="post" action="/" enctype="multipart/form-data">
-                        <div class="upload-dropzone">
-                            <input type="file" name="file1" id="file1">
-                            <label for="file1">
-                                <span class="drop-main">Select or drop your image</span>
-                                <span class="drop-sub">Max 25&nbsp;MB · PNG/JPG</span>
-                            </label>
+                        <div class="card-columns">
+                            <div class="card-col-left">
+                                <div class="upload-dropzone{% if uploaded_image %} has-image{% endif %}" id="dropzone">
+                                    <input type="file" name="file1" id="file1" accept="image/*">
+                                    <label for="file1" id="dropzone-label" {% if uploaded_image %} class="hidden" {%
+                                        endif %}>
+                                        <span class="drop-main">Select or drop your image</span>
+                                        <span class="drop-sub">Max 25&nbsp;MB · PNG/JPG</span>
+                                    </label>
+                                    <img id="preview-image"
+                                        class="preview-image{% if not uploaded_image %} hidden{% endif %}" {% if
+                                        uploaded_image %}src="data:image/jpeg;base64,{{ uploaded_image }}" {% endif %}
+                                        alt="Uploaded preview" />
+                                </div>
+                            </div>
+                            <div class="card-col-right">
+                                <div class="status-panel-vertical">
+                                    <div class="status-header">Analysis Status</div>
+                                    <div class="status-item">
+                                        <span class="status-label">File</span>
+                                        <span id="file-status"
+                                            class="status-value{% if uploaded_filename %} status-value--active{% endif %}">{%
+                                            if uploaded_filename %}{{ uploaded_filename }}{% else %}No file selected{%
+                                            endif %}</span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">Prediction</span>
+                                        <span id="prediction-status" class="status-value">
+                                            {% if prediction_made %}
+                                            <strong>{{ prediction }}</strong>
+                                            {% else %}
+                                            Not analyzed
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">Confidence</span>
+                                        <span id="confidence-status" class="status-value">
+                                            {% if prediction_made %}
+                                            {{ probability | round(2) }}%
+                                            {% else %}
+                                            —
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="button-group">
+                        <div class="button-group{% if not uploaded_filename %} hidden{% endif %}" id="button-group">
                             <button class="primary-action" type="submit" id="submit-button">Ask ARC</button>
                             <button class="secondary-action" type="button" id="clear-button">Clear</button>
                         </div>
                     </form>
-
-                    <div class="status-panel">
-                        <div class="status-header">Analysis Status</div>
-                        <div class="status-row">
-                            <div class="status-col status-col--file">
-                                <span class="status-label">File</span>
-                                <span id="file-status" class="status-value">No file selected</span>
-                            </div>
-                            <div class="status-col status-col--prediction">
-                                <span class="status-label">Prediction</span>
-                                <span id="prediction-status" class="status-value">
-                                    {% if prediction_made %}
-                                    <strong>{{ prediction }}</strong>
-                                    {% else %}
-                                    Not analyzed
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <div class="status-col status-col--confidence">
-                                <span class="status-label">Confidence</span>
-                                <span id="confidence-status" class="status-value">
-                                    {% if prediction_made %}
-                                    {{ probability | round(2) }}%
-                                    {% else %}
-                                    —
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
-                        {% if prediction_made and yolo %}
-                        <div class="status-image">
-                            <img src="data:image/jpeg;base64,{{ annotated_image }}" alt="Analysis result" />
-                        </div>
-                        {% endif %}
-                    </div>
                 </div>
             </div>
         </section>
@@ -149,6 +155,10 @@
         const alertText = document.getElementById('alert-text');
         const alertClose = document.getElementById('alert-close');
         const clearButton = document.getElementById('clear-button');
+        const dropzone = document.getElementById('dropzone');
+        const dropzoneLabel = document.getElementById('dropzone-label');
+        const previewImage = document.getElementById('preview-image');
+        const buttonGroup = document.getElementById('button-group');
 
         let hideAlertTimeout;
 
@@ -165,13 +175,23 @@
         };
 
         const clearAll = () => {
+            // If there's a prediction showing (from backend), redirect to reset fully
+            if (predictionStatus.querySelector('strong')) {
+                window.location.href = '/';
+                return;
+            }
             fileInput.value = '';
             fileStatus.textContent = 'No file selected';
             fileStatus.classList.remove('status-value--active');
             predictionStatus.innerHTML = 'Not analyzed';
             document.getElementById('confidence-status').textContent = '—';
-            // remove persisted filename so it doesn't reappear after clearing
-            try { sessionStorage.removeItem('uploadedFilename'); } catch (e) { }
+            // Reset image preview
+            previewImage.classList.add('hidden');
+            previewImage.src = '';
+            dropzoneLabel.classList.remove('hidden');
+            dropzone.classList.remove('has-image');
+            // Hide buttons
+            buttonGroup.classList.add('hidden');
             hideAlert();
         };
 
@@ -180,20 +200,35 @@
 
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length) {
-                const [{ name }] = fileInput.files;
-                fileStatus.textContent = name;
+                const file = fileInput.files[0];
+                fileStatus.textContent = file.name;
                 fileStatus.classList.add('status-value--active');
                 // Clear previous prediction when new file is selected
                 predictionStatus.innerHTML = 'Not analyzed';
                 document.getElementById('confidence-status').textContent = '—';
-                // persist filename so it can be restored after a form submit + reload
-                try { sessionStorage.setItem('uploadedFilename', name); } catch (e) { }
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewImage.classList.remove('hidden');
+                    dropzoneLabel.classList.add('hidden');
+                    dropzone.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+                // Show buttons
+                buttonGroup.classList.remove('hidden');
                 showAlert('Image added', 'success');
             } else {
                 fileStatus.textContent = 'No file selected';
                 fileStatus.classList.remove('status-value--active');
                 predictionStatus.innerHTML = 'Not analyzed';
                 document.getElementById('confidence-status').textContent = '—';
+                previewImage.classList.add('hidden');
+                previewImage.src = '';
+                dropzoneLabel.classList.remove('hidden');
+                dropzone.classList.remove('has-image');
+                // Hide buttons
+                buttonGroup.classList.add('hidden');
             }
         });
 
@@ -258,20 +293,8 @@
             }
         }
 
-        // Restore persisted filename (so it remains visible with the prediction)
-        function restoreFilename() {
-            try {
-                const saved = sessionStorage.getItem('uploadedFilename');
-                if (saved) {
-                    fileStatus.textContent = saved;
-                    fileStatus.classList.add('status-value--active');
-                }
-            } catch (e) { }
-        }
-
-        // Load leaderboard and restore filename on page load
+        // Load leaderboard on page load
         document.addEventListener('DOMContentLoaded', () => {
-            restoreFilename();
             loadLeaderboard();
             // Auto-hide alert if it's visible on page load (from backend)
             if (!alertBox.classList.contains('hidden')) {
