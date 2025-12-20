@@ -2,19 +2,6 @@
 
 ---
 
-## Documentation
-
-- [ ] **DOCKER**: Document required env vars and developer experience (live reload)
-- [ ] **CI/CD**: Document pipeline badges and status in `README.md`
-- [ ] **CI/CD**: Document GitLab CI/CD setup
-- [ ] **DOC**: Update `README.md` with:
-  - [ ] Overview of the project and features
-  - [ ] CI/CD pipeline badges and status
-  - [ ] IaC/K8s deployment steps
-  - [ ] Screenshots folder with evidence (UI, CI runs, Ansible output, K8s resources)
-
----
-
 ## SvelteKit Frontend
 
 - [ ] Start migrating to SvelteKit while preserving existing HTML/CSS/JS
