@@ -1,6 +1,6 @@
 # ARC - AI Radiology Copilot 
 
-[![GitLab](https://img.shields.io/badge/GitLab-Repository-ff6d28?style=for-the-badge&logo=gitlab&logoColor=white&logoWidth=20)](https://gitlab.com/vin-br/arc) [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github&logoColor=white&logoWidth=20)](https://github.com/vin-br/arc) [![Docker](https://img.shields.io/badge/Docker-Repository-2396ed?style=for-the-badge&logo=docker&logoColor=white&logoWidth=20)](https://hub.docker.com/repository/docker/vinbr/) [![CI/CD](https://img.shields.io/gitlab/pipeline/vin-br/arc/main?style=for-the-badge&logo=gitlab&logoColor=white&label=CI%2FCD)](https://gitlab.com/vin-br/arc/devi/pipelines) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0e76a8?style=for-the-badge&logo=linkedin&logoColor=white&logoWidth=20)](https://www.linkedin.com/in/vin-br/)
+[![GitLab](https://img.shields.io/badge/GitLab-Repository-ff6d28?style=for-the-badge&logo=gitlab&logoColor=white&logoWidth=20)](https://gitlab.com/vin-br/arc) [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github&logoColor=white&logoWidth=20)](https://github.com/vin-br/arc) [![Docker](https://img.shields.io/badge/Docker-Repository-2396ed?style=for-the-badge&logo=docker&logoColor=white&logoWidth=20)](https://hub.docker.com/u/vinbr) [![CI/CD](https://img.shields.io/gitlab/pipeline/vin-br/arc/main?style=for-the-badge&logo=gitlab&logoColor=white&label=CI%2FCD)](https://gitlab.com/vin-br/arc/devi/pipelines) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0e76a8?style=for-the-badge&logo=linkedin&logoColor=white&logoWidth=20)](https://www.linkedin.com/in/vin-br/)
 
 Web-based app to detect brain tumors from MRI images using a Convolutional Neural Network (CNN) model.
 
@@ -51,8 +51,8 @@ Check out this [video](path/to/demo.mp4) for a demonstration on how to start and
 
 **Using Pre-built Docker Images**
 Public images are available on Docker Hub for easy user setup:
-- [ARC AI on Docker Hub](https://hub.docker.com/repository/docker/vinbr/arc-ai/general)
-- [ARC Backend on Docker Hub](https://hub.docker.com/repository/docker/vinbr/arc-backend/general)
+- [ARC AI on Docker Hub](https://hub.docker.com/r/vinbr/arc-backend)
+- [ARC Backend on Docker Hub](https://hub.docker.com/r/vinbr/arc-backend)
 
 ![Docker Hub Repositories](screenshots/arc-docker-hub.png){width=100% height=auto}
 

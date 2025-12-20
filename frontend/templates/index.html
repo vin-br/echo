@@ -21,8 +21,7 @@
             <div class="hero-content">
                 <p class="eyebrow">ai radiology copilot</p>
                 <h2>Support tool. Pre-screen only.</h2>
-                <p class="hero-lede">Upload a brain MRI slice and ARC blends ConvNeXt predictions with a confidence
-                    score to indicate whether a tumor is present or not.</p>
+                <p class="hero-lede">Upload a brain MRI — ARC returns prediction with a confidence score.</p>
                 <div class="hero-highlights">
                     <span class="highlight-chip">ConvNeXt Model</span>
                     <span class="highlight-chip">Prediction</span>
@@ -126,15 +125,6 @@
             </div>
         </section>
     </main>
-    <footer>
-        <div class="social-links">
-            <a href="https://gitlab.com/vin-br/arc"><i class="fab fa-gitlab" style="font-size: 2rem;"></i></a>
-            <a href="https://www.linkedin.com/in/vin-br/"><i class="fab fa-linkedin" style="font-size: 2rem;"></i></a>
-            <a href="https://www.mozilla.org/en-US/MPL/2.0/"><i class="fas fa-file-contract"
-                    style="font-size: 2rem;"></i></a>
-        </div>
-        <p>Vincent Boettcher</p>
-    </footer>
 
     {% set active_message = messages[0] if messages else None %}
     <div id="snackbar-container" class="snackbar-container">
@@ -302,6 +292,17 @@
             }
         });
     </script>
+    <footer>
+        <div class="social-links">
+            <a href="https://gitlab.com/vin-br/arc"><i class="fab fa-gitlab" style="font-size: 2rem;"></i></a>
+            <a href="https://github.com/vin-br/arc"><i class="fab fa-github" style="font-size: 2rem;"></i></a>
+            <a href="https://hub.docker.com/u/vinbr"><i class="fab fa-docker" style="font-size: 2rem;"></i></a>
+            <a href="https://www.linkedin.com/in/vin-br/"><i class="fab fa-linkedin" style="font-size: 2rem;"></i></a>
+            <a href="https://www.mozilla.org/en-US/MPL/2.0/"><i class="fas fa-file-contract"
+                    style="font-size: 2rem;"></i></a>
+        </div>
+        <p>Vincent Boettcher</p>
+    </footer>
 </body>
 
 </html>
