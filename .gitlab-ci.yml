@@ -62,8 +62,40 @@ test:backend:
 # ====================================
 # STAGE 3: BUILD - Docker image builds
 # ====================================
-# Builds and pushes to Docker Hub only (public access, no account needed)
-build:backend:
+
+# Test builds (no push) - runs on develop and MRs to verify Docker builds work
+build:backend:test:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    # Build only - no push to verify Dockerfile works
+    - docker build -f backend/Dockerfile -t arc-backend:test .
+  after_script:
+    - docker images
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+
+build:ai:test:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    # Build only - no push to verify Dockerfile works
+    - docker build -f ai/Dockerfile -t arc-ai:test .
+  after_script:
+    - docker images
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+
+# Production builds (with push) - runs on main branch only
+build:backend:push:
   stage: build
   image: docker:latest
   services:
@@ -85,7 +117,7 @@ build:backend:
       when: manual
 
 
-build:ai:
+build:ai:push:
   stage: build
   image: docker:latest
   services:
