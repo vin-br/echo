@@ -50,9 +50,6 @@ target/
 profile_default/
 ipython_config.py
 
-# pyenv
-.python-version
-
 # Environments
 .env
 .venv
@@ -65,3 +62,12 @@ venv.bak/
 
 # Unit test / coverage reports
 .pytest_cache/
+.coverage
+.htmlcov/
+htmlcov
+
+# IaC: Ansible and Vagrant
+*.retry
+playbooks/*.retry
+.vagrant/
+*.log

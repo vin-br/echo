@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arc-backend
+  namespace: arc
+  labels:
+    app: arc-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: arc-backend
+  template:
+    metadata:
+      labels:
+        app: arc-backend
+    spec:
+      initContainers:
+      - name: setup
+        image: busybox
+        command: ['sh', '-c', 'mkdir -p /app/ai/results']
+        volumeMounts:
+        - name: results
+          mountPath: /app/ai/results
+      containers:
+      - name: backend
+        image: vinbr/arc-backend:latest
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: results
+          mountPath: /app/ai/results
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+      volumes:
+      - name: results
+        emptyDir: {}

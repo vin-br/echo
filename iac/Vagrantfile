@@ -1,0 +1,28 @@
+# -*- mode: ruby -*-
+
+Vagrant.configure("2") do |config|
+  # Use Fedora 40 (works on both x86_64 and ARM64)
+  config.vm.box = "bento/fedora-40"
+  
+  # Network configuration
+  # Port 8080 is used to avoid conflict with Docker containers on port 8000
+  config.vm.network "forwarded_port", guest: 8000, host: 8080, host_ip: "127.0.0.1"
+  
+  # Sync the project folder to the VM
+  # This allows the application to run from the synced folder
+  config.vm.synced_folder "..", "/vagrant_data"
+  
+  # VM provider configuration
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "arc-devops-vm"
+    vb.memory = "4096"
+    vb.cpus = 2
+  end
+  
+  # Provision with Ansible
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "playbooks/main.yml"
+    ansible.compatibility_mode = "2.0"
+    ansible.verbose = false
+  end
+end

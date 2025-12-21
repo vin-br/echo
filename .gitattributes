@@ -1,0 +1,2 @@
+# Git LFS - Track the exact model file used by the backend so CI and image builds
+models/convnext-tiny-b16-img224-e60-lr-5e-4.pt filter=lfs diff=lfs merge=lfs -text
