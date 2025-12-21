@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+        integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+        crossorigin="anonymous" />
+    <title>ARC</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <h1><a href="javascript:location.reload()">ARC</a></h1>
+        </div>
+    </header>
+    <main>
+        <section class="hero-shell">
+            <div class="hero-content">
+                <p class="eyebrow">ai radiology copilot</p>
+                <h2>Support tool. Pre-screen only.</h2>
+                <p class="hero-lede">Upload a brain MRI — ARC returns a prediction with a confidence score.</p>
+                <div class="hero-highlights">
+                    <span class="highlight-chip">ConvNeXt Model</span>
+                    <span class="highlight-chip">Prediction</span>
+                    <span class="highlight-chip">Confidence Score</span>
+                    <span class="highlight-chip">Models Leaderboard</span>
+                    <span class="highlight-chip">YOLO Labeling - coming soon</span>
+                </div>
+                <div class="hero-metrics">
+                    <article>
+                        <span class="metric-value">~32 ms</span>
+                        <span class="metric-label">Avg. inference</span>
+                    </article>
+                    <article>
+                        <span class="metric-value">4 classes</span>
+                        <span class="metric-label">No tumor · Glioma · Meningioma · Pituitary</span>
+                    </article>
+                </div>
+            </div>
+            <div class="upload-section">
+                <div class="section-header">
+                    <div>
+                        <h2>Scan Insight</h2>
+                        <p class="section-subtitle">Drag & drop an MRI slice or browse manually.</p>
+                    </div>
+                    <p class="card-badge">IN DEVELOPMENT</p>
+                </div>
+                <div class="card">
+                    <form id="upload-form" method="post" action="/" enctype="multipart/form-data">
+                        <div class="card-columns">
+                            <div class="card-col-left">
+                                <div class="upload-dropzone{% if uploaded_image %} has-image{% endif %}" id="dropzone">
+                                    <input type="file" name="file1" id="file1" accept="image/*">
+                                    <label for="file1" id="dropzone-label" {% if uploaded_image %} class="hidden" {%
+                                        endif %}>
+                                        <span class="drop-main">Select or drop your image</span>
+                                        <span class="drop-sub">Max 25&nbsp;MB · PNG/JPG</span>
+                                    </label>
+                                    <img id="preview-image"
+                                        class="preview-image{% if not uploaded_image %} hidden{% endif %}" {% if
+                                        uploaded_image %}src="data:image/jpeg;base64,{{ uploaded_image }}" {% endif %}
+                                        alt="Uploaded preview" />
+                                </div>
+                            </div>
+                            <div class="card-col-right">
+                                <div class="status-panel-vertical">
+                                    <div class="status-header">Analysis Status</div>
+                                    <div class="status-item">
+                                        <span class="status-label">File</span>
+                                        <span id="file-status"
+                                            class="status-value{% if uploaded_filename %} status-value--active{% endif %}">{%
+                                            if uploaded_filename %}{{ uploaded_filename }}{% else %}No file selected{%
+                                            endif %}</span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">Prediction</span>
+                                        <span id="prediction-status" class="status-value">
+                                            {% if prediction_made %}
+                                            <strong>{{ prediction }}</strong>
+                                            {% else %}
+                                            Not analyzed
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">Confidence</span>
+                                        <span id="confidence-status" class="status-value">
+                                            {% if prediction_made %}
+                                            {{ probability | round(2) }}%
+                                            {% else %}
+                                            —
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="button-group{% if not uploaded_filename %} hidden{% endif %}" id="button-group">
+                            <button class="primary-action" type="submit" id="submit-button">Ask ARC</button>
+                            <button class="secondary-action" type="button" id="clear-button">Clear</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section class="leaderboard-section">
+            <div class="leaderboard-header">
+                <h2>Model Transparency.</h2>
+                <p class="section-subtitle">All models trained on the same dataset with different architectures and
+                    hyperparameters.</p>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3>Training Leaderboard</h3>
+                        <p class="card-subtitle">Ranked by test accuracy on held-out data</p>
+                    </div>
+                </div>
+                <div id="leaderboard-container" class="leaderboard-container">
+                    <div class="loading-spinner">Loading model results...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% set active_message = messages[0] if messages else None %}
+    <div id="snackbar-container" class="snackbar-container">
+        <div id="alert"
+            class="snackbar {% if active_message %}snackbar--{{ active_message.level }}{% else %}hidden{% endif %}"
+            role="alert" aria-live="assertive">
+            <span id="alert-text">{% if active_message %}{{ active_message.text }}{% endif %}</span>
+            <button type="button" id="alert-close" class="snackbar-close" aria-label="Dismiss">&times;</button>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file1');
+        const fileStatus = document.getElementById('file-status');
+        const predictionStatus = document.getElementById('prediction-status');
+        const alertBox = document.getElementById('alert');
+        const alertText = document.getElementById('alert-text');
+        const alertClose = document.getElementById('alert-close');
+        const clearButton = document.getElementById('clear-button');
+        const dropzone = document.getElementById('dropzone');
+        const dropzoneLabel = document.getElementById('dropzone-label');
+        const previewImage = document.getElementById('preview-image');
+        const buttonGroup = document.getElementById('button-group');
+
+        let hideAlertTimeout;
+
+        const hideAlert = () => {
+            alertBox.classList.add('hidden');
+        };
+
+        const showAlert = (message, type = 'info') => {
+            alertText.textContent = message;
+            alertBox.classList.remove('hidden', 'snackbar--error', 'snackbar--info', 'snackbar--success');
+            alertBox.classList.add(`snackbar--${type}`);
+            clearTimeout(hideAlertTimeout);
+            hideAlertTimeout = setTimeout(hideAlert, 4000);
+        };
+
+        const clearAll = () => {
+            // If there's a prediction showing (from backend), redirect to reset fully
+            if (predictionStatus.querySelector('strong')) {
+                window.location.href = '/';
+                return;
+            }
+            fileInput.value = '';
+            fileStatus.textContent = 'No file selected';
+            fileStatus.classList.remove('status-value--active');
+            predictionStatus.innerHTML = 'Not analyzed';
+            document.getElementById('confidence-status').textContent = '—';
+            // Reset image preview
+            previewImage.classList.add('hidden');
+            previewImage.src = '';
+            dropzoneLabel.classList.remove('hidden');
+            dropzone.classList.remove('has-image');
+            // Hide buttons
+            buttonGroup.classList.add('hidden');
+            hideAlert();
+        };
+
+        alertClose.addEventListener('click', hideAlert);
+        clearButton.addEventListener('click', clearAll);
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                const file = fileInput.files[0];
+                fileStatus.textContent = file.name;
+                fileStatus.classList.add('status-value--active');
+                // Clear previous prediction when new file is selected
+                predictionStatus.innerHTML = 'Not analyzed';
+                document.getElementById('confidence-status').textContent = '—';
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewImage.classList.remove('hidden');
+                    dropzoneLabel.classList.add('hidden');
+                    dropzone.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+                // Show buttons
+                buttonGroup.classList.remove('hidden');
+                showAlert('Image added', 'success');
+            } else {
+                fileStatus.textContent = 'No file selected';
+                fileStatus.classList.remove('status-value--active');
+                predictionStatus.innerHTML = 'Not analyzed';
+                document.getElementById('confidence-status').textContent = '—';
+                previewImage.classList.add('hidden');
+                previewImage.src = '';
+                dropzoneLabel.classList.remove('hidden');
+                dropzone.classList.remove('has-image');
+                // Hide buttons
+                buttonGroup.classList.add('hidden');
+            }
+        });
+
+        form.addEventListener('submit', (event) => {
+            if (!fileInput.files.length) {
+                event.preventDefault();
+                showAlert('No image selected', 'error');
+            } else {
+                showAlert('Analyzing...', 'info');
+            }
+        });
+
+        // Fetch and display leaderboard
+        async function loadLeaderboard() {
+            const container = document.getElementById('leaderboard-container');
+            try {
+                const response = await fetch('/api/metrics');
+                if (!response.ok) throw new Error('Failed to load leaderboard');
+
+                const data = await response.json();
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="empty-state">No training results available yet.</p>';
+                    return;
+                }
+
+                const table = document.createElement('table');
+                table.className = 'leaderboard-table';
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Model</th>
+                            <th>Test Accuracy</th>
+                            <th>Val Accuracy</th>
+                            <th>Batch Size</th>
+                            <th>Learning Rate</th>
+                            <th>Epochs</th>
+                            <th>Best Epoch</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map((row, index) => `
+                            <tr class="${index === 0 ? 'rank-1' : ''}">
+                                <td class="rank-cell">${index + 1}</td>
+                                <td class="model-cell">${row.model}</td>
+                                <td class="acc-cell">${(row.test_acc * 100).toFixed(2)}%</td>
+                                <td>${(row.val_acc * 100).toFixed(2)}%</td>
+                                <td>${row.batch_size}</td>
+                                <td>${row.lr.toExponential(1)}</td>
+                                <td>${row.epochs}</td>
+                                <td>${row.best_epoch}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+                container.innerHTML = '';
+                container.appendChild(table);
+            } catch (error) {
+                container.innerHTML = '<p class="error-state">Unable to load leaderboard. Please try again later.</p>';
+                console.error('Leaderboard error:', error);
+            }
+        }
+
+        // Load leaderboard on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLeaderboard();
+            // Auto-hide alert if it's visible on page load (from backend)
+            if (!alertBox.classList.contains('hidden')) {
+                hideAlertTimeout = setTimeout(hideAlert, 5000);
+            }
+        });
+    </script>
+    <footer>
+        <div class="social-links">
+            <a href="https://gitlab.com/vin-br/arc"><i class="fab fa-gitlab" style="font-size: 2rem;"></i></a>
+            <a href="https://github.com/vin-br/arc"><i class="fab fa-github" style="font-size: 2rem;"></i></a>
+            <a href="https://hub.docker.com/u/vinbr"><i class="fab fa-docker" style="font-size: 2rem;"></i></a>
+            <a href="https://www.linkedin.com/in/vin-br/"><i class="fab fa-linkedin" style="font-size: 2rem;"></i></a>
+            <a href="https://www.mozilla.org/en-US/MPL/2.0/"><i class="fas fa-file-contract"
+                    style="font-size: 2rem;"></i></a>
+        </div>
+        <p>Vincent Boettcher</p>
+    </footer>
+</body>
+
+</html>

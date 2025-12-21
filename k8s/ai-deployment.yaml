@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arc-ai
+  namespace: arc
+  labels:
+    app: arc-ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: arc-ai
+  template:
+    metadata:
+      labels:
+        app: arc-ai
+    spec:
+      containers:
+      - name: ai
+        image: vinbr/arc-ai:latest
+        ports:
+        - containerPort: 8001
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+        stdin: true
+        tty: true
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: arc-data-pvc
