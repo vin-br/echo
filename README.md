@@ -12,21 +12,21 @@ Check out this [video](demo.mp4) for a demonstration on how to start and use the
 
 ## Overview
 
-<figure style="max-width:800px;margin:0 auto;">
+<figure style="max-width:auto;margin:0 auto;">
   <img src="screenshots/app-overview-1.png" alt="Arc App Overview - Homepage" style="width:auto;height:auto;display:block;">
   <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC Homepage — ARC main landing with upload and predictions</figcaption>
 </figure>
 
 ---
 
-<figure style="max-width:800px;margin:0 auto;">
+<figure style="max-width:auto;margin:0 auto;">
   <img src="screenshots/app-overview-2.png" alt="Arc App Overview - Image uploaded and shown" style="width:auto;height:auto;display:block;">
   <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC Image Uploaded — Displaying the uploaded MRI image</figcaption>
 </figure>
 
 ---
 
-<figure style="max-width:800px;margin:0 auto;">
+<figure style="max-width:auto;margin:0 auto;">
   <img src="screenshots/app-overview-3.png" alt="Arc App Overview - Prediction" style="width:auto;height:auto;display:block;">
   <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC Prediction — Model prediction displayed with confidence score</figcaption>
 </figure>
@@ -35,21 +35,21 @@ Check out this [video](demo.mp4) for a demonstration on how to start and use the
 
 ## Use Case
 
-<figure style="max-width:800px;margin:0 auto;">
+<figure style="max-width:auto;margin:0 auto;">
   <img src="screenshots/app-use-case-1.png" alt="Arc App - Upload Case Focus without an MRI" style="width:auto;height:auto;display:block;">
   <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC App - Upload Case Focus</figcaption>
 </figure>
 
 ---
 
-<figure style="max-width:800px;margin:0 auto;">
+<figure style="max-width:auto;margin:0 auto;">
   <img src="screenshots/app-use-case-2.png" alt="Arc App - Upload Case Focus with an MRI" style="width:auto;height:auto;display:block;">
   <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC App - Upload Case Focus with an MRI</figcaption>
 </figure>
 
 ---
 
-<figure style="max-width:800px;margin:0 auto;">
+<figure style="max-width:auto;margin:0 auto;">
   <img src="screenshots/app-use-case-3.png" alt="Arc App - Prediction Case Focus" style="width:auto;height:auto;display:block;">
   <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">ARC App - Prediction Case Focus</figcaption>
 </figure>
@@ -141,10 +141,15 @@ docker compose up -d
 
 Before you start:
 - make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
+- make sure you have [Git LFS](https://git-lfs.github.com/) installed to download model files.
 
 ```shell
 # Clone the repository with SSH:
 git clone git@gitlab.com:vin-br/arc.git
+cd arc
+
+# Pull the model files using Git LFS because they were too large for regular Git:
+git lfs pull # requires Git LFS installed
 
 # From root directory, build and start the development containers:
 docker compose -f docker-compose.dev.yml up --build
@@ -261,10 +266,15 @@ Starting the ARC VM with Vagrant should look like this:
 
 Before you start:
 - make sure you have curl installed on your machine if you are on macOS/Linux.
+- make sure you have [Git LFS](https://git-lfs.github.com/) installed to download model files.
 
 ```shell
 # clone the repository with SSH:
 git clone git@gitlab.com:vin-br/arc.git
+cd arc
+
+# Pull the model files using Git LFS because they were too large for regular Git:
+git lfs pull # requires Git LFS installed
 
 # Install uv (on macOS/Linux)
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -335,10 +345,24 @@ git push gitlab main
 # - CI_REGISTRY_PASSWORD: Personal access token (with api, read_registry, write_registry scopes)
 ```
 
-<img src="screenshots/cicd-main-validation.png" alt="GitLab CI/CD Main Branch Validation Overview" style="max-width:auto;height:auto;">
+<figure style="max-width:auto;margin:0 auto;">
+  <img src="screenshots/cicd-main-validation.png" alt="GitLab CI/CD Main Branch Validation Overview" style="width:auto;height:auto;display:block;">
+  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">GitLab CI/CD main branch validation overview</figcaption>
+</figure>
 
-<img src="screenshots/cicd-develop-validation.png" alt="GitLab CI/CD Develop Branch Validation Overview" style="max-width:auto;height:auto;">
+---
 
+<figure style="max-width:auto;margin:0 auto;">
+  <img src="screenshots/cicd-develop-validation.png" alt="GitLab CI/CD Develop Branch Validation Overview" style="width:auto;height:auto;display:block;">
+  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">GitLab CI/CD develop branch validation overview</figcaption>
+</figure>
+
+---
+
+<figure style="max-width:auto;margin:0 auto;">
+  <img src="screenshots/cicd-merge-pipeline.png" alt="GitLab CI/CD Merge Pipeline Overview" style="width:auto;height:auto;display:block;">
+  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">GitLab CI/CD Merge pipeline overview when merging devops branch into develop branch</figcaption>
+</figure>
 
 ---
 
@@ -381,7 +405,11 @@ To monitor the Docker containers running the ARC application, you can use Netdat
 
 ## Model Metrics
 
+Table overview of model performance metrics available in the app:
+
 <img src="screenshots/metrics-leaderboard.png" alt="GitLab CI/CD Main Branch Validation Overview" style="max-width:auto;height:auto;">
+
+These metrics are stored in a DuckDB database located in the folder `backend/data/metrics.duckdb`.
 
 ## Resources
 
@@ -402,12 +430,14 @@ Steps taken to clean the dataset:
 
 - [PyTorch](https://docs.pytorch.org/docs/stable/index.html)
 - [FastAPI](https://fastapi.tiangolo.com/)
+- [DuckDB](https://duckdb.org/docs/stable/)
+- [Git LFS](https://git-lfs.github.com/)
+- [GitLab CI/CD Docs](https://docs.gitlab.com/ee/ci/)
 - [pytest](https://docs.pytest.org/en/stable/)
 - [uv](https://docs.astral.sh/uv/)
 - [Ruff](https://docs.astral.sh/ruff/)
 - [Ty](https://docs.astral.sh/ty/)
 - [Docker](https://docs.docker.com/manuals/)
-- [GitLab CI/CD Docs](https://docs.gitlab.com/ee/ci/)
 - [Kubernetes Docs](https://kubernetes.io/docs/home/)
 - [Minikube Docs](https://minikube.sigs.k8s.io/docs/)
 - [Vagrant Docs](https://developer.hashicorp.com/vagrant/docs)
