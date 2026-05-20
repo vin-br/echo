@@ -18,10 +18,10 @@ spec:
       initContainers:
       - name: setup
         image: busybox
-        command: ['sh', '-c', 'mkdir -p /app/ai/results']
+        command: ['sh', '-c', 'mkdir -p /app/vision/results']
         volumeMounts:
         - name: results
-          mountPath: /app/ai/results
+          mountPath: /app/vision/results
       containers:
       - name: backend
         image: vinbr/arc-backend:latest
@@ -29,7 +29,7 @@ spec:
         - containerPort: 8000
         volumeMounts:
         - name: results
-          mountPath: /app/ai/results
+          mountPath: /app/vision/results
         livenessProbe:
           httpGet:
             path: /healthz

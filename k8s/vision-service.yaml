@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: arc-backend
+  name: arc-vision
   namespace: arc
 spec:
   type: ClusterIP
   selector:
-    app: arc-backend
+    app: arc-vision
   ports:
   - protocol: TCP
-    port: 8000
-    targetPort: 8000
+    port: 8001
+    targetPort: 8001

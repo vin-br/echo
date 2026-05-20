@@ -1,6 +1,6 @@
 import pytest
 from backend.app.inference import predict_image, _load_image, load_model
-from shared.paths import MODEL_PATH
+from backend.app.paths import MODEL_PATH
 
 
 # =========================================

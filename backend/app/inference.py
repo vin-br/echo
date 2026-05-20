@@ -10,7 +10,7 @@ from PIL import Image, UnidentifiedImageError
 from torch import nn
 from torchvision import transforms
 
-from shared.config import (
+from backend.app.config import (
     CLASS_LABELS,
     DEVICE,
     IMAGENET_MEAN,

@@ -1,7 +1,8 @@
-FROM python:3.14.2-slim
+FROM python:3.14.5-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
+    UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/usr/local
 
 WORKDIR /app
@@ -15,17 +16,18 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=backend/uv.lock,target=uv.lock \
     uv sync --frozen --no-install-project --no-dev
 
-# Copy application directories
+# Copy application directory
 COPY backend ./backend/
-COPY frontend ./frontend/
-COPY shared ./shared/
 
 # Copy model checkpoint
 COPY models/convnext-tiny-b16-img224-e60-lr-5e-4.pt ./models/convnext-tiny-b16-img224-e60-lr-5e-4.pt
+
+# Copy training results (metrics JSON files for the leaderboard)
+COPY vision/results ./vision/results/
 
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz').read()" || exit 1
 
-CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,7 +1,7 @@
 import io
 import json
 from backend.app.inference import predict_image
-from shared.paths import MODEL_PATH
+from backend.app.paths import MODEL_PATH
 
 # =============================================
 # INTEGRATION TESTS - Multi-Component Workflows
@@ -46,12 +46,12 @@ def test_database_ingestion_flow(temp_db, tmp_path):
 def test_api_prediction_with_database(client, sample_image_bytes):
     """Test API endpoint processes image and model returns prediction."""
     files = {"file1": ("brain.png", io.BytesIO(sample_image_bytes), "image/png")}
-    response = client.post("/", files=files)
+    response = client.post("/api/predict", files=files)
 
     assert response.status_code == 200
-    # Verify HTML response contains prediction elements
-    content = response.content.decode()
-    assert "prediction" in content.lower()
+    data = response.json()
+    assert "prediction" in data
+    assert "confidence" in data
 
 
 def test_multiple_json_ingestions(temp_db, tmp_path):
@@ -90,14 +90,11 @@ def test_multiple_json_ingestions(temp_db, tmp_path):
 
 def test_api_error_handling_with_invalid_upload(client):
     """Test API handles invalid uploads gracefully without crashing."""
-    # Test with text file instead of image
     text_content = b"This is a text file, not an image"
     files = {"file1": ("document.txt", io.BytesIO(text_content), "text/plain")}
 
-    response = client.post("/", files=files)
-    assert response.status_code == 200
-    # Should return HTML with error message, not crash
-    assert b"error" in response.content.lower() or b"valid" in response.content.lower()
+    response = client.post("/api/predict", files=files)
+    assert response.status_code == 422
 
 
 def test_prediction_consistency(sample_image_bytes):
