@@ -1,18 +1,14 @@
-"""FastAPI Back-end"""
+"""FastAPI Back-end — API"""
 
 import os
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, File, Request, UploadFile, HTTPException
-from fastapi.responses import HTMLResponse, Response
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import Response
 
-from shared.paths import (
+from backend.app.paths import (
     MODEL_PATH,
-    STATIC_DIR,
-    TEMPLATES_DIR,
     RESULTS_DIR,
     BACKEND_DATA_DIR,
     verify_paths,
@@ -20,12 +16,8 @@ from shared.paths import (
 from backend.app.inference import predict_image
 from backend.app.database import MetricsDatabase
 
-# Verify necessary paths exist from modules package
-# Skip file verification in CI environment where models don't exist
+# Verify necessary paths exist
 verify_paths(skip_files=os.getenv("CI") is not None)
-
-# Initialize Jinja2 templates
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # Global database instance
 database: Optional[MetricsDatabase] = None
@@ -55,38 +47,14 @@ async def lifespan(_: FastAPI):
 
 # Create FastAPI app with lifespan event
 app = FastAPI(
-    title="AI Radiology Copilot - ARC API",
-    description="API for an AI assistant to classify brain tumor images using deep learning models",
-    version="1.0.0",
+    title="ARC API",
+    description="API to augment, recognize and classify brain tumor images using deep learning models",
+    version="26.05",
     docs_url="/docs",  # Swagger UI
     lifespan=lifespan,
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-
-
-MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # enforce 25 MB cap without middleware
-
-
-def _base_context(request: Request, **overrides: Any) -> Dict[str, Any]:
-    context = {
-        "request": request,
-        "prediction": None,
-        "probability": None,
-        "prediction_made": False,
-        "annotated_image": None,
-        "yolo": False,
-        "messages": [],
-        "uploaded_filename": None,
-        "uploaded_image": None,
-    }
-    context.update(overrides)
-    return context
-
-
-def _message(text: str, level: str = "info") -> Dict[str, str]:
-    return {"text": text, "level": level}
+MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # enforce 25 MB cap
 
 
 # Health check endpoint
@@ -102,58 +70,27 @@ async def _favicon() -> Response:
     return Response(status_code=204)
 
 
-# Define root endpoint
-@app.get("/", response_class=HTMLResponse)
-async def read_index(request: Request) -> HTMLResponse:
-    """Render the landing page with placeholder context."""
-
-    context = _base_context(request)
-    return templates.TemplateResponse(request, "index.html", context)
-
-
-@app.post("/", response_class=HTMLResponse)
-async def classify_image(request: Request, file1: UploadFile = File(...)) -> HTMLResponse:
-    """Accept an uploaded image and display the model prediction."""
-
+@app.post("/api/predict")
+async def predict(file1: UploadFile = File(...)) -> Dict[str, Any]:
+    """Accept an uploaded image and return the model prediction as JSON."""
     file_bytes = await file1.read()
-    messages: List[Dict[str, str]] = []
+
     if not file1.filename:
-        messages.append(_message("Please select an image before submitting.", "error"))
-    elif len(file_bytes) == 0:
-        messages.append(_message("The uploaded file was empty.", "error"))
-    elif len(file_bytes) > MAX_UPLOAD_BYTES:
-        messages.append(_message("Image exceeds the 25 MB limit.", "error"))
-    if messages:
-        context = _base_context(
-            request,
-            messages=messages,
-            uploaded_filename=file1.filename,
-        )
-        return templates.TemplateResponse(request, "index.html", context)
+        raise HTTPException(status_code=400, detail="No file provided")
+    if len(file_bytes) == 0:
+        raise HTTPException(status_code=400, detail="The uploaded file was empty")
+    if len(file_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail="Image exceeds the 25 MB limit")
 
     try:
-        prediction = predict_image(file_bytes, MODEL_PATH)
+        result = predict_image(file_bytes, MODEL_PATH)
     except ValueError as exc:
-        context = _base_context(
-            request,
-            messages=[_message(str(exc), "error")],
-            uploaded_filename=file1.filename,
-        )
-        return templates.TemplateResponse(request, "index.html", context)
+        raise HTTPException(status_code=422, detail=str(exc))
 
-    import base64
-    uploaded_image_b64 = base64.b64encode(file_bytes).decode("utf-8")
-    success_message = _message("Prediction completed", "success")
-    context = _base_context(
-        request,
-        prediction=prediction["display_label"],
-        probability=prediction["confidence"],
-        prediction_made=True,
-        messages=[success_message],
-        uploaded_filename=file1.filename,
-        uploaded_image=uploaded_image_b64,
-    )
-    return templates.TemplateResponse(request, "index.html", context)
+    return {
+        "prediction": result["display_label"],
+        "confidence": result["confidence"],
+    }
 
 
 @app.get("/api/metrics")

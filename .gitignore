@@ -71,3 +71,7 @@ htmlcov
 playbooks/*.retry
 .vagrant/
 *.log
+
+# Node / SvelteKit
+node_modules/
+.svelte-kit/

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arc-frontend
+  namespace: arc
+  labels:
+    app: arc-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: arc-frontend
+  template:
+    metadata:
+      labels:
+        app: arc-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: vinbr/arc-frontend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: BACKEND_URL
+          value: "http://arc-backend:8000"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3

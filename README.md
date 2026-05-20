@@ -1,8 +1,7 @@
-# ARC - AI Radiology Copilot 
-
+# ARC
 [![GitLab](https://img.shields.io/badge/GitLab-Repository-ff6d28?style=for-the-badge&logo=gitlab&logoColor=white&logoWidth=20)](https://gitlab.com/vin-br/arc) [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github&logoColor=white&logoWidth=20)](https://github.com/vin-br/arc) [![Docker](https://img.shields.io/badge/Docker-Repository-2396ed?style=for-the-badge&logo=docker&logoColor=white&logoWidth=20)](https://hub.docker.com/u/vinbr) [![CI/CD](https://img.shields.io/gitlab/pipeline/vin-br/arc/main?style=for-the-badge&logo=gitlab&logoColor=white&label=CI%2FCD)](https://gitlab.com/vin-br/arc/-/pipelines?ref=main) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0e76a8?style=for-the-badge&logo=linkedin&logoColor=white&logoWidth=20)](https://www.linkedin.com/in/vin-br/)
 
-ARC is a copilot web-app to help analyze and detect brain tumors from MRI images.
+ARC stands for **Augment**, **Recognize**, **Classify** — and that's the exact pipeline it runs. It's a computer vision application I built to automatically detect and annotate brain tumors on MRI scans.
 
 ---
 
@@ -59,18 +58,19 @@ Check out this [video](demo.mp4) for a demonstration on how to start and use the
 ### Project Structure
 
 ```
-├── ai/                     # AI models and training scripts
-├── backend/                # FastAPI backend application
+├── vision/                 # Vision model training (PyTorch)
+├── backend/                # FastAPI backend API
 ├── data/                   # Dataset files
-├── frontend/               # Frontend web application (HTML, CSS, JS)
+├── frontend/               # SvelteKit frontend (Bun)
 ├── iac/                    # Infrastructure as Code (Vagrant + Ansible)
 ├── k8s/                    # Kubernetes deployment manifests
 ├── models/                 # Pre-trained model weights
+├── nginx/                  # Nginx reverse proxy configs (prod + dev)
 ├── screenshots/            # Screenshots and visual assets
 ├── scripts/                # Utility scripts
-├── shared/                 # Shared utilities and resources
-├── docker-compose.yml      # Docker Compose configuration
-├── docker-compose.dev.yml  # Docker Compose for development
+├── docker-compose.yaml     # Docker Compose configuration
+├── docker-compose.dev.yaml # Docker Compose for development
+├── docker-dev.sh           # Convenience wrapper for dev compose
 ├── .gitlab-ci.yml          # GitLab CI/CD pipeline configuration
 ├── README.md               # Project documentation
 └── ...                     # Other configuration and resource files
@@ -82,12 +82,22 @@ Check out this [video](demo.mp4) for a demonstration on how to start and use the
 
 - **AI Model:** Convolutional Neural Network (ConvNeXt) using PyTorch
 - **Backend:** FastAPI
-- **Frontend:** HTML, CSS, JavaScript
+- **Frontend:** SvelteKit with Bun
+- **Reverse Proxy:** Nginx
 - **Containerization:** Docker, Docker Compose
 - **Orchestration:** Kubernetes (Minikube for local development)
 - **Infrastructure as Code (IaC):** Vagrant + Ansible
-- **CI/CD:** GitLab CI/CD
-- **Monitoring:** Netdata Container
+- **CI/CD:** GitLab CI/CD (Docker Hub + GitLab Container Registry)
+- **Versioning:** CalVer (YY.MM)
+
+---
+
+### Environment Variables
+
+The frontend requires a `BACKEND_URL` environment variable so the SvelteKit server can reach the backend API during SSR.
+
+- **Docker:** Set automatically via `environment:` in docker-compose — no `.env` file needed.
+- **Local dev:** Copy `frontend/.env.example` to `frontend/.env` and set `BACKEND_URL=http://localhost:8000`.
 
 ---
 
@@ -97,8 +107,9 @@ Check out this [video](demo.mp4) for a demonstration on how to start and use the
 
 **Using Pre-built Docker Images**
 Public images are available on Docker Hub for easy user setup:
-- [ARC AI on Docker Hub](https://hub.docker.com/r/vinbr/arc-backend)
+- [ARC Vision on Docker Hub](https://hub.docker.com/r/vinbr/arc-vision)
 - [ARC Backend on Docker Hub](https://hub.docker.com/r/vinbr/arc-backend)
+- [ARC Frontend on Docker Hub](https://hub.docker.com/r/vinbr/arc-frontend)
 
 <img src="screenshots/docker-hub-repositories.png" alt="Docker Hub Repositories with ARC AI and Backend Images" style="max-width:auto;height:auto;">
 
@@ -114,11 +125,11 @@ git clone https://gitlab.com/vin-br/arc.git # HTTPS
 docker compose up -d
 
 # The images will be automatically pulled from Docker Hub on first run
-# Access the app at:
-http://localhost:8000
+# Access the app via Nginx at:
+http://localhost:8080
 ```
 
-The app should now be running locally on your machine through Docker containers and accessible at the specified URL: `http://localhost:8000`
+The app should now be running locally on your machine through Docker containers.
 
 > The Docker backend image includes the necessary model weights, so no additional download is required.
 
@@ -152,15 +163,17 @@ cd arc
 git lfs pull # requires Git LFS installed
 
 # From root directory, build and start the development containers:
-docker compose -f docker-compose.dev.yml up --build
+./docker-dev.sh up --build
+# Or without the wrapper:
+docker compose -f docker-compose.dev.yaml up --build
 
 # This will:
 # - Build images locally from Dockerfiles
 # - Mount local code for live reload during development
 # - Use local model files from ./models directory
 
-# Access the app at:
-http://localhost:8000
+# Access the app via Nginx at:
+http://localhost:8081
 ```
 
 <img src="screenshots/docker-compose-dev.png" alt="Docker Compose Development Terminal Overview" style="max-width:auto;height:auto;">
@@ -171,10 +184,10 @@ http://localhost:8000
 
 ```shell
 # To stop the containers, run:
-docker compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yaml down
 
 # To rebuild without cache:
-docker compose -f docker-compose.dev.yml build --no-cache
+docker compose -f docker-compose.dev.yaml build --no-cache
 ```
 
 **Developer setup includes:**
@@ -211,7 +224,7 @@ kubectl get all -n arc
 # Be patient!
 
 # Using minikube service (tested with Docker driver on macOS)
-minikube service arc-backend -n arc
+minikube service arc-nginx -n arc
 # This will open your browser automatically
 ```
 
@@ -238,7 +251,7 @@ vagrant up
 
 # This will:
 # - Create a Fedora 40 VM
-# - Install Python 3.14.2 and dependencies using uv
+# - Install Python 3.14.5 and dependencies using uv
 # - Start the application as a systemd service
 # - Run a health check
 
@@ -266,6 +279,7 @@ Starting the ARC VM with Vagrant should look like this:
 
 Before you start:
 - make sure you have curl installed on your machine if you are on macOS/Linux.
+- make sure you have [Bun](https://bun.sh/) installed for the frontend.
 - make sure you have [Git LFS](https://git-lfs.github.com/) installed to download model files.
 
 ```shell
@@ -284,27 +298,35 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 
 # if uv install fails, check the documentation at https://docs.astral.sh/uv/ for other installation methods.
 
-# From root directory, install Python 3.14.2 with uv:
-uv python install 3.14.2
+# From root directory, install Python 3.14.5 with uv:
+uv python install 3.14.5
 
-# Create and activate a virtual environment:
-uv venv --python 3.14.2
-source .venv/bin/activate # On macOS/Linux or WSL/Git Bash
-.venv\Scripts\activate # On Windows / PowerShell
-
-# Install the dependencies:
+# Install backend dependencies:
+cd backend
 uv sync --group dev
+cd ..
+
+# Install frontend dependencies:
+cd frontend
+bun install
+cd ..
 ```
 
-**Run FastAPI app:**
+**Run the backend:**
 ```shell
-# From root directory
-uv run uvicorn backend.app.main:app --reload
+cd backend
+uv run uvicorn app.main:app --reload
+```
+
+**Run the frontend (in another terminal):**
+```shell
+cd frontend
+BACKEND_URL=http://localhost:8000 bun run dev
 ```
 
 <img src="screenshots/uvicorn-run-dev.png" alt="Uvicorn Run Terminal Overview" style="max-width:auto;height:auto;">
 
-The app should now be running locally on your machine with a local install and accessible at the specified URL: ```http://localhost:8000```.
+The app should now be running locally — backend at `http://localhost:8000` and frontend at `http://localhost:5173`.
 
 ## Swagger API Documentation
 
@@ -324,7 +346,7 @@ http://localhost:8000/docs
 The project uses **GitLab CI/CD** with 3 stages:
 1. **Lint** → Runs `ruff` on Python code
 2. **Test** → Runs `pytest` on backend
-3. **Build** → Builds and pushes Docker images to GitLab Container Registry
+3. **Build** → Builds and pushes Docker images to Docker Hub and GitLab Container Registry
 
 On develop branch, only Lint and Test stages run.
 On main branch, all 3 stages run.
@@ -410,6 +432,10 @@ Table overview of model performance metrics available in the app:
 <img src="screenshots/metrics-leaderboard.png" alt="GitLab CI/CD Main Branch Validation Overview" style="max-width:auto;height:auto;">
 
 These metrics are stored in a DuckDB database located in the folder `backend/data/metrics.duckdb`.
+
+## Versioning
+
+Versioning follows CalVer: `YY.MM` where YY.MM reflects when the work was done. A patch suffix (e.g. `26.05.1`) is added only for subsequent fixes within the same month. For example, version `26.05` indicates that the work was completed in May 2026.
 
 ## Resources
 
