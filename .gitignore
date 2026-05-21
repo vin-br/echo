@@ -63,15 +63,16 @@ venv.bak/
 # Unit test / coverage reports
 .pytest_cache/
 .coverage
-.htmlcov/
-htmlcov
+htmlcov/
 
-# IaC: Ansible and Vagrant
+# IaC: Ansible
 *.retry
 playbooks/*.retry
-.vagrant/
 *.log
 
 # Node / SvelteKit
 node_modules/
 .svelte-kit/
+
+# DuckDB
+*.wal

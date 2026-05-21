@@ -38,7 +38,7 @@ wheels = [
 
 [[package]]
 name = "arc-backend"
-version = "26.5"
+version = "26.5.1"
 source = { editable = "." }
 dependencies = [
     { name = "duckdb" },

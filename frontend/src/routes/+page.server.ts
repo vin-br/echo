@@ -6,11 +6,17 @@ const getBackendUrl = () => env.BACKEND_URL || 'http://localhost:8000';
 
 export const load: PageServerLoad = async () => {
 	try {
-		const res = await fetch(`${getBackendUrl()}/api/metrics`);
-		if (!res.ok) return { metrics: [] };
-		return { metrics: await res.json() };
+		const [metricsRes, latencyRes] = await Promise.all([
+			fetch(`${getBackendUrl()}/api/metrics`),
+			fetch(`${getBackendUrl()}/api/latency`)
+		]);
+		const metrics = metricsRes.ok ? await metricsRes.json() : [];
+		const latency = latencyRes.ok
+			? await latencyRes.json()
+			: { avg_ms: null, count: 0 };
+		return { metrics, latency };
 	} catch {
-		return { metrics: [] };
+		return { metrics: [], latency: { avg_ms: null, count: 0 } };
 	}
 };
 

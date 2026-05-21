@@ -1,6 +1,6 @@
 {
   "name": "arc-frontend",
-  "version": "26.05",
+  "version": "26.05.1",
   "private": true,
   "type": "module",
   "scripts": {

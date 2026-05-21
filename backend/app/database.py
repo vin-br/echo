@@ -11,6 +11,7 @@ class MetricsDatabase:
     def __init__(self, database_path: Path):
         self.connection = duckdb.connect(str(database_path))
         self._create_table()
+        self._create_latency_table()
 
     def _create_table(self):
         """Create single leaderboard table."""
@@ -26,6 +27,17 @@ class MetricsDatabase:
                 val_acc DOUBLE,
                 best_epoch INTEGER,
                 PRIMARY KEY (model, batch_size, image_size, epochs, lr)
+            )
+        """
+        )
+
+    def _create_latency_table(self):
+        """Create table for inference latency measurements."""
+        self.connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS latency (
+                id INTEGER PRIMARY KEY,
+                ms DOUBLE NOT NULL
             )
         """
         )
@@ -77,3 +89,25 @@ class MetricsDatabase:
     def close(self):
         """Close database connection."""
         self.connection.close()
+
+    # ------------------------------------------------------------------
+    # Inference latency (rolling window of last 100 measurements)
+    # ------------------------------------------------------------------
+
+    def record_latency(self, ms: float) -> None:
+        """Append a latency measurement, keeping only the last 100 rows."""
+        next_id = self.connection.execute("SELECT COALESCE(MAX(id), 0) + 1 FROM latency").fetchone()[0]
+        self.connection.execute("INSERT INTO latency VALUES (?, ?)", [next_id, ms])
+        # Trim to last 100
+        self.connection.execute(
+            "DELETE FROM latency WHERE id <= (SELECT MAX(id) - 100 FROM latency)"
+        )
+
+    def get_latency(self) -> Dict[str, Any]:
+        """Return average latency and count from stored measurements."""
+        row = self.connection.execute(
+            "SELECT AVG(ms), COUNT(*) FROM latency"
+        ).fetchone()
+        if row is None or row[1] == 0:
+            return {"avg_ms": None, "count": 0}
+        return {"avg_ms": round(row[0], 1), "count": row[1]}

@@ -90,5 +90,27 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
 
+  automate-dev:
+    container_name: arc-automate-dev
+    build:
+      context: ./automate
+    profiles:
+      - tools
+    volumes:
+      - ./media:/app/media
+      - ./data:/app/data:ro
+      - ./backend/htmlcov:/app/htmlcov:ro
+    environment:
+      - FRONTEND_URL=http://nginx-dev:80
+      - BACKEND_URL=http://backend-dev:8000
+      - MEDIA_DIR=/app/media
+      - DATA_DIR=/app/data
+      - HTMLCOV_DIR=/app/htmlcov
+    depends_on:
+      nginx-dev:
+        condition: service_started
+      backend-dev:
+        condition: service_healthy
+
 volumes:
   results:
