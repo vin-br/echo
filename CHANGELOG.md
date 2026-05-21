@@ -4,7 +4,22 @@
 
 Summary of changes made to the Arc project.
 
-Versioning follows CalVer: `YY.MM` where YY.MM reflects when the work was done. A patch suffix (e.g. `26.05.1`) is added only for subsequent fixes within the same month.
+Versioning follows CalVer: `YY.MM.PATCH` — where `YY.MM` reflects when the work was done and `PATCH` is incremented for each subsequent release within the same month.
+
+## [26.05.1] - 2026-05-21
+
+### Added
+- `automate/` service: Playwright + Firefox automation for README screenshots and GIFs.
+- `GET /api/latency` endpoint with DuckDB-persisted rolling average (survives restarts).
+- Ansible Docker connection plugin for IaC provisioning (replaces Vagrant/VirtualBox).
+
+### Changed
+- README restructured with table of contents, collapsible sections, and GIF assets.
+- Renamed `screenshots/` to `media/`.
+- Removed Vagrant/VirtualBox legacy from IaC.
+- `htmlcov/` output moved to `backend/htmlcov/`.
+- Version bump to `26.05.1` across all packages.
+- Removed demo.mp4 from the repo and added instructions to generate gifs instead with the new automation service.
 
 ## [26.05] - 2026-05-20
 

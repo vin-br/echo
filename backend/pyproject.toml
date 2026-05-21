@@ -1,6 +1,6 @@
 [project]
 name = "arc-backend"
-version = "26.05"
+version = "26.05.1"
 description = "Backend for ARC"
 authors = [{name = "Vincent Boettcher", email = "vin.br@runbox.no"}]
 requires-python = ">=3.14"
@@ -25,6 +25,9 @@ dev = [
 
 [tool.pytest.ini_options]
 pythonpath = [".."]
+
+[tool.coverage.html]
+directory = "htmlcov"
 
 [build-system]
 requires = ["hatchling"]

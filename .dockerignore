@@ -38,7 +38,7 @@ uv.lock
 
 # Data and assets not needed in images
 data/
-screenshots/
+media/
 iac/
 k8s/
 nginx/

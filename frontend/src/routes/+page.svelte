@@ -70,8 +70,16 @@
 			</div>
 			<div class="hero-metrics">
 				<article>
-					<span class="metric-value">~32 ms</span>
-					<span class="metric-label">Avg. inference</span>
+					<span class="metric-value"
+						>{data.latency?.avg_ms != null
+							? `${data.latency.avg_ms} ms`
+							: '~32 ms'}</span
+					>
+					<span class="metric-label"
+						>Avg. inference{data.latency?.count
+							? ` · last ${data.latency.count}`
+							: ''}</span
+					>
 				</article>
 				<article>
 					<span class="metric-value">4 classes</span>

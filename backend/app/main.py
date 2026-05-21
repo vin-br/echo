@@ -1,6 +1,7 @@
 """FastAPI Back-end — API"""
 
 import os
+import time
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
@@ -49,7 +50,7 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     title="ARC API",
     description="API to augment, recognize and classify brain tumor images using deep learning models",
-    version="26.05",
+    version="26.05.1",
     docs_url="/docs",  # Swagger UI
     lifespan=lifespan,
 )
@@ -83,14 +84,27 @@ async def predict(file1: UploadFile = File(...)) -> Dict[str, Any]:
         raise HTTPException(status_code=400, detail="Image exceeds the 25 MB limit")
 
     try:
+        start = time.perf_counter()
         result = predict_image(file_bytes, MODEL_PATH)
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        if database is not None:
+            database.record_latency(elapsed_ms)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
     return {
         "prediction": result["display_label"],
         "confidence": result["confidence"],
+        "inference_ms": round(elapsed_ms, 1),
     }
+
+
+@app.get("/api/latency")
+async def get_latency() -> Dict[str, Any]:
+    """Return rolling average inference latency from recent predictions."""
+    if database is None:
+        return {"avg_ms": None, "count": 0}
+    return database.get_latency()
 
 
 @app.get("/api/metrics")

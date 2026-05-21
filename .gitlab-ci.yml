@@ -7,7 +7,7 @@ stages:
 
 variables:
   # CalVer version — update on each release
-  ARC_VERSION: "26.05"
+  ARC_VERSION: "26.05.1"
 
 # =================================================
 # STAGE 1: LINT - Code formatting and static checks
