@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: arc-data-pv
+  name: echo-data-pv
   labels:
     type: local
 spec:
@@ -16,8 +16,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: arc-data-pvc
-  namespace: arc
+  name: echo-data-pvc
+  namespace: echo
 spec:
   accessModes:
     - ReadWriteOnce

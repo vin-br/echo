@@ -1,6 +1,6 @@
 {
-  "name": "arc-frontend",
-  "version": "26.05.1",
+  "name": "echo-frontend",
+  "version": "26.05.2",
   "private": true,
   "type": "module",
   "scripts": {

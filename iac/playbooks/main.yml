@@ -1,5 +1,5 @@
 ---
-- name: Provision ARC Application (Docker target)
+- name: Provision ECHO Application (Docker target)
   hosts: all
   become: true
   vars:
@@ -50,7 +50,7 @@
           PYTHONPATH=/app exec {{ venv_path }}/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 
     - name: Start backend in background
-      shell: nohup /app/start.sh > /var/log/arc-backend.log 2>&1 &
+      shell: nohup /app/start.sh > /var/log/echo-backend.log 2>&1 &
       async: 10
       poll: 0
 

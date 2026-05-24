@@ -1,4 +1,4 @@
-"""Split each tumor class folder into training/testing folders."""
+"""Split each tumor class folder into train/test folders."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ def sample_folder(root: Path, label: str, rate: float) -> None:
     if not files:
         return
     count = max(1, int(len(files) * rate))
-    dest = root / "testing" / label
+    dest = root / "test" / label
     dest.mkdir(parents=True, exist_ok=True)
     for path in random.sample(files, min(count, len(files))):
         shutil.move(path, dest / path.name)
@@ -33,10 +33,10 @@ def main(argv: list[str]) -> int:
         print(f"Folder not found: {root}")
         return 1
     rate = float(argv[2]) if len(argv) > 2 else 0.20
-    (root / "testing").mkdir(exist_ok=True)
+    (root / "test").mkdir(exist_ok=True)
     for label in LABELS:
         sample_folder(root, label, rate)
-    print("Testing split created.")
+    print("Test split created.")
     return 0
 
 

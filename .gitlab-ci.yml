@@ -1,13 +1,19 @@
-# ARC Project GitLab CI/CD Pipeline Configuration
+# ECHO Project GitLab CI/CD Pipeline Configuration
 
 stages:
   - lint
   - test
   - build
 
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
 variables:
   # CalVer version — update on each release
-  ARC_VERSION: "26.05.1"
+  ECHO_VERSION: "26.05.2"
 
 # =================================================
 # STAGE 1: LINT - Code formatting and static checks
@@ -75,30 +81,16 @@ test:backend:
 # STAGE 3: BUILD - Docker image builds
 # ====================================
 
-# Test builds (no push) - runs on develop and MRs to verify Docker builds work
+# Test builds (no push) - runs on MRs to verify Docker builds work
 build:backend:test:
   stage: build
   image: docker:latest
   services:
     - docker:dind
   script:
-    - docker build -f backend/Dockerfile -t arc-backend:test .
+    - docker build -f backend/Dockerfile -t echo-backend:test .
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-    - if: '$CI_COMMIT_BRANCH == "main"'
-
-build:vision:test:
-  stage: build
-  image: docker:latest
-  services:
-    - docker:dind
-  script:
-    - docker build -f vision/Dockerfile -t arc-vision:test .
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-    - if: '$CI_COMMIT_BRANCH == "main"'
 
 build:frontend:test:
   stage: build
@@ -106,14 +98,47 @@ build:frontend:test:
   services:
     - docker:dind
   script:
-    - docker build -f frontend/Dockerfile -t arc-frontend:test ./frontend
+    - docker build -f frontend/Dockerfile -t echo-frontend:test ./frontend
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# Development builds (with push) - validates full build+push pipeline
+# Auto-triggers on merge commits to develop; manual option during MRs targeting develop
+
+build:backend:dev:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+  script:
+    - docker build -f backend/Dockerfile -t echo-backend:dev .
+    - docker tag echo-backend:dev $DOCKERHUB_USERNAME/echo-backend:dev
+    - docker push $DOCKERHUB_USERNAME/echo-backend:dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop" && $CI_COMMIT_TITLE =~ /^Merge branch/'
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
+      when: manual
+
+build:frontend:dev:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+  script:
+    - docker build -f frontend/Dockerfile -t echo-frontend:dev ./frontend
+    - docker tag echo-frontend:dev $DOCKERHUB_USERNAME/echo-frontend:dev
+    - docker push $DOCKERHUB_USERNAME/echo-frontend:dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop" && $CI_COMMIT_TITLE =~ /^Merge branch/'
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
+      when: manual
 
 # Production builds (with push) - runs on main branch only
-# Pushes to both Docker Hub and GitLab Container Registry
+# Pushes to Docker Hub with latest + CalVer + commit SHA tags
 
 build:backend:push:
   stage: build
@@ -122,48 +147,14 @@ build:backend:push:
     - docker:dind
   before_script:
     - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
   script:
-    - docker build -f backend/Dockerfile -t arc-backend .
-    # Docker Hub — :latest + CalVer + commit SHA
-    - docker tag arc-backend $DOCKERHUB_USERNAME/arc-backend:latest
-    - docker tag arc-backend $DOCKERHUB_USERNAME/arc-backend:$ARC_VERSION
-    - docker tag arc-backend $DOCKERHUB_USERNAME/arc-backend:$CI_COMMIT_SHORT_SHA
-    - docker push $DOCKERHUB_USERNAME/arc-backend:latest
-    - docker push $DOCKERHUB_USERNAME/arc-backend:$ARC_VERSION
-    - docker push $DOCKERHUB_USERNAME/arc-backend:$CI_COMMIT_SHORT_SHA
-    # GitLab Container Registry — :latest + CalVer
-    - docker tag arc-backend $CI_REGISTRY_IMAGE/backend:latest
-    - docker tag arc-backend $CI_REGISTRY_IMAGE/backend:$ARC_VERSION
-    - docker push $CI_REGISTRY_IMAGE/backend:latest
-    - docker push $CI_REGISTRY_IMAGE/backend:$ARC_VERSION
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_TITLE =~ /^Merge branch.*develop.*into main/'
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "develop"'
-      when: manual
-
-build:vision:push:
-  stage: build
-  image: docker:latest
-  services:
-    - docker:dind
-  before_script:
-    - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
-  script:
-    - docker build -f vision/Dockerfile -t arc-vision .
-    # Docker Hub
-    - docker tag arc-vision $DOCKERHUB_USERNAME/arc-vision:latest
-    - docker tag arc-vision $DOCKERHUB_USERNAME/arc-vision:$ARC_VERSION
-    - docker tag arc-vision $DOCKERHUB_USERNAME/arc-vision:$CI_COMMIT_SHORT_SHA
-    - docker push $DOCKERHUB_USERNAME/arc-vision:latest
-    - docker push $DOCKERHUB_USERNAME/arc-vision:$ARC_VERSION
-    - docker push $DOCKERHUB_USERNAME/arc-vision:$CI_COMMIT_SHORT_SHA
-    # GitLab Container Registry
-    - docker tag arc-vision $CI_REGISTRY_IMAGE/vision:latest
-    - docker tag arc-vision $CI_REGISTRY_IMAGE/vision:$ARC_VERSION
-    - docker push $CI_REGISTRY_IMAGE/vision:latest
-    - docker push $CI_REGISTRY_IMAGE/vision:$ARC_VERSION
+    - docker build -f backend/Dockerfile -t echo-backend .
+    - docker tag echo-backend $DOCKERHUB_USERNAME/echo-backend:latest
+    - docker tag echo-backend $DOCKERHUB_USERNAME/echo-backend:$ECHO_VERSION
+    - docker tag echo-backend $DOCKERHUB_USERNAME/echo-backend:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKERHUB_USERNAME/echo-backend:latest
+    - docker push $DOCKERHUB_USERNAME/echo-backend:$ECHO_VERSION
+    - docker push $DOCKERHUB_USERNAME/echo-backend:$CI_COMMIT_SHORT_SHA
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_TITLE =~ /^Merge branch.*develop.*into main/'
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "develop"'
@@ -176,21 +167,14 @@ build:frontend:push:
     - docker:dind
   before_script:
     - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
   script:
-    - docker build -f frontend/Dockerfile -t arc-frontend ./frontend
-    # Docker Hub
-    - docker tag arc-frontend $DOCKERHUB_USERNAME/arc-frontend:latest
-    - docker tag arc-frontend $DOCKERHUB_USERNAME/arc-frontend:$ARC_VERSION
-    - docker tag arc-frontend $DOCKERHUB_USERNAME/arc-frontend:$CI_COMMIT_SHORT_SHA
-    - docker push $DOCKERHUB_USERNAME/arc-frontend:latest
-    - docker push $DOCKERHUB_USERNAME/arc-frontend:$ARC_VERSION
-    - docker push $DOCKERHUB_USERNAME/arc-frontend:$CI_COMMIT_SHORT_SHA
-    # GitLab Container Registry
-    - docker tag arc-frontend $CI_REGISTRY_IMAGE/frontend:latest
-    - docker tag arc-frontend $CI_REGISTRY_IMAGE/frontend:$ARC_VERSION
-    - docker push $CI_REGISTRY_IMAGE/frontend:latest
-    - docker push $CI_REGISTRY_IMAGE/frontend:$ARC_VERSION
+    - docker build -f frontend/Dockerfile -t echo-frontend ./frontend
+    - docker tag echo-frontend $DOCKERHUB_USERNAME/echo-frontend:latest
+    - docker tag echo-frontend $DOCKERHUB_USERNAME/echo-frontend:$ECHO_VERSION
+    - docker tag echo-frontend $DOCKERHUB_USERNAME/echo-frontend:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKERHUB_USERNAME/echo-frontend:latest
+    - docker push $DOCKERHUB_USERNAME/echo-frontend:$ECHO_VERSION
+    - docker push $DOCKERHUB_USERNAME/echo-frontend:$CI_COMMIT_SHORT_SHA
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_TITLE =~ /^Merge branch.*develop.*into main/'
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "develop"'

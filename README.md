@@ -1,10 +1,10 @@
-# ARC
+# ECHO
 
-[![GitLab](https://img.shields.io/badge/GitLab-Repository-ff6d28?style=for-the-badge&logo=gitlab&logoColor=white&logoWidth=20)](https://gitlab.com/vin-br/arc) [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github&logoColor=white&logoWidth=20)](https://github.com/vin-br/arc) [![Docker](https://img.shields.io/badge/Docker-Repository-2396ed?style=for-the-badge&logo=docker&logoColor=white&logoWidth=20)](https://hub.docker.com/u/vinbr) [![CI/CD](https://img.shields.io/gitlab/pipeline/vin-br/arc/main?style=for-the-badge&logo=gitlab&logoColor=white&label=CI%2FCD)](https://gitlab.com/vin-br/arc/-/pipelines?ref=main) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0e76a8?style=for-the-badge&logo=linkedin&logoColor=white&logoWidth=20)](https://www.linkedin.com/in/vin-br/)
+[![GitLab](https://img.shields.io/badge/GitLab-Repository-ff6d28?style=for-the-badge&logo=gitlab&logoColor=white&logoWidth=20)](https://gitlab.com/vin-br/echo) [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github&logoColor=white&logoWidth=20)](https://github.com/vin-br/echo) [![Docker](https://img.shields.io/badge/Docker-Repository-2396ed?style=for-the-badge&logo=docker&logoColor=white&logoWidth=20)](https://hub.docker.com/u/vinbr) [![CI/CD](https://img.shields.io/gitlab/pipeline/vin-br/echo/main?style=for-the-badge&logo=gitlab&logoColor=white&label=CI%2FCD)](https://gitlab.com/vin-br/echo/-/pipelines?ref=main) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0e76a8?style=for-the-badge&logo=linkedin&logoColor=white&logoWidth=20)](https://www.linkedin.com/in/vin-br/)
 
-ARC stands for **Augment**, **Recognize**, **Classify** — and that's the exact pipeline it runs. It's a computer vision application I built to automatically detect and annotate brain tumors on MRI scans.
+Echo is a computer vision application I built to automatically detect and annotate brain tumors on MRI scans.
 
-![ARC Demo — Upload an MRI and get a prediction](media/app-overview.gif)
+![ECHO Demo — Upload an MRI and get a prediction](media/app-overview.gif)
 
 **Built with** PyTorch · FastAPI · SvelteKit · Bun · Docker · Kubernetes · Nginx · Ansible · GitLab CI/CD
 
@@ -12,25 +12,24 @@ ARC stands for **Augment**, **Recognize**, **Classify** — and that's the exact
 
 ## Table of contents
 
-- [Use case](#use-case)
+- [Use cases](#use-cases)
 - [Architecture](#architecture)
-- [Project structure](#project-structure)
-- [Technical stack](#technical-stack)
-- [Environment variables](#environment-variables)
-- [Installation options](#installation-options)
-- [Swagger API documentation](#swagger-api-documentation)
+- [Dataset distribution](#dataset-distribution)
+- [Model metrics](#model-metrics)
 - [CI/CD pipeline](#cicd-pipeline)
 - [Unit testing](#unit-testing)
-- [Monitoring containers with Netdata container](#monitoring-containers-with-netdata-container)
-- [Model metrics](#model-metrics)
-- [Versioning](#versioning)
-- [Generating screenshots and GIFs](#generating-screenshots-and-gifs)
+- [Technical stack](#technical-stack)
+- [Project structure](#project-structure)
+- [Installation for users](#installation-for-users)
+- [Installation for developers](#installation-for-developers)
+- [Contribute](#contribute)
 - [Resources](#resources)
-- [Disclamer](#disclamer)
+- [License and copyright](#license-and-copyright)
+- [Disclaimer](#disclaimer)
 
 ---
 
-## Use case
+## Use cases
 
 <details>
 <summary>No tumor detection</summary>
@@ -88,200 +87,27 @@ graph LR
 
 ---
 
-## Project structure
+## Dataset distribution
 
-<details>
-<summary>View project tree</summary>
+The classification dataset contains 10,315 brain MRI images split 80/20 across 4 classes.
 
-```
-├── automate/               # Screenshot & GIF automation (Playwright)
-├── vision/                 # Vision model training (PyTorch)
-├── backend/                # FastAPI backend API
-├── data/                   # Dataset files
-├── frontend/               # SvelteKit frontend (Bun)
-├── iac/                    # Infrastructure as Code (Ansible + Docker)
-├── k8s/                    # Kubernetes deployment manifests
-├── models/                 # Pre-trained model weights
-├── nginx/                  # Nginx reverse proxy configs (prod + dev)
-├── media/                  # Screenshots and visual assets
-├── scripts/                # Utility scripts (dataset cleaning)
-├── docker-compose.yaml     # Docker Compose configuration
-├── docker-compose.dev.yaml # Docker Compose for development
-├── docker-dev.sh           # Convenience wrapper for dev compose
-├── .gitlab-ci.yml          # GitLab CI/CD pipeline configuration
-├── README.md               # Project documentation
-└── ...                     # Other configuration and resource files
-```    
-
-</details>
+![Dataset distribution](media/data-distribution.png)
 
 ---
 
-## Technical stack
+## Model metrics
 
-<details>
-<summary>View full stack details</summary>
+Table overview of model performance metrics available in the app:
 
-- **AI Model:** Convolutional Neural Network (ConvNeXt) using PyTorch
-- **Backend:** FastAPI
-- **Frontend:** SvelteKit with Bun
-- **Reverse Proxy:** Nginx
-- **Containerization:** Docker, Docker Compose
-- **Orchestration:** Kubernetes (Minikube for local development)
-- **Infrastructure as Code (IaC):** Ansible + Docker connection plugin
-- **CI/CD:** GitLab CI/CD (Docker Hub + GitLab Container Registry)
-- **Versioning:** CalVer (YY.MM)
+<img src="media/metrics-leaderboard.png" alt="Model metrics leaderboard" style="max-width:auto;height:auto;">
 
-</details>
+These metrics are stored in a DuckDB database located in the folder `backend/data/metrics.duckdb`.
 
----
+### Training curves
 
-## Environment variables
+The app includes interactive carousels for training curves (accuracy over epochs) for each model:
 
-<details>
-<summary>View environment configuration</summary>
-
-The frontend requires a `BACKEND_URL` environment variable so the SvelteKit server can reach the backend API during SSR.
-
-- **Docker:** Set automatically via `environment:` in docker-compose — no `.env` file needed.
-- **Local dev:** Copy `frontend/.env.example` to `frontend/.env` and set `BACKEND_URL=http://localhost:8000`.
-
-</details>
-
----
-
-## Installation options
-
-<details>
-<summary>Option A — Using public Docker Hub images</summary>
-
-**Using Pre-built Docker Images**
-Public images are available on Docker Hub for easy user setup:
-- [ARC Vision on Docker Hub](https://hub.docker.com/r/vinbr/arc-vision)
-- [ARC Backend on Docker Hub](https://hub.docker.com/r/vinbr/arc-backend)
-- [ARC Frontend on Docker Hub](https://hub.docker.com/r/vinbr/arc-frontend)
-
-Before you start:
-- make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
-
-```shell
-# Clone the repository (SSH or HTTPS):
-git clone git@gitlab.com:vin-br/arc.git # SSH
-git clone https://gitlab.com/vin-br/arc.git # HTTPS
-
-# From root directory, pull and start the containers:
-./docker.sh pull
-./docker.sh up -d
-
-# The images will be automatically pulled from Docker Hub on first run
-# Access the app via Nginx at:
-http://localhost:8080
-```
-
-The app should now be running locally on your machine through Docker containers.
-
-> The Docker backend image includes the necessary model weights, so no additional download is required.
-
-</details>
-
-<details>
-<summary>Option B — Using Docker developer setup</summary>
-
-Before you start:
-- make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
-- make sure you have [Git LFS](https://git-lfs.github.com/) installed to download model files.
-
-```shell
-# Clone the repository with SSH:
-git clone git@gitlab.com:vin-br/arc.git
-cd arc
-
-# Pull the model files using Git LFS because they were too large for regular Git:
-git lfs pull # requires Git LFS installed
-
-# From root directory, build and start the development containers:
-./docker-dev.sh up --build
-# Or without the wrapper:
-docker compose -f docker-compose.dev.yaml up --build
-
-# Access the app via Nginx at:
-http://localhost:8081
-```
-
-```shell
-# To stop the containers, run:
-./docker-dev.sh down
-
-# To rebuild without cache:
-./docker-dev.sh build --no-cache
-```
-
-</details>
-
-<details>
-<summary>Option C — Using Kubernetes with Minikube</summary>
-
-Before you start:
-- Make sure you have [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) installed
-- Make sure you have [kubectl](https://kubernetes.io/docs/tasks/tools/) installed
-
-For detailed Kubernetes deployment instructions, see [k8s/README.md](k8s/README.md)
-
-```shell
-# # From root directory, start and deploy:
-minikube start
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/
-
-# Check deployment status
-# Verify that the backend and AI pods are running before continuing
-kubectl get all -n arc
-
-# Access the application
-# Note: Backend may take a minute to load the ML model on first startup
-# Be patient!
-
-# Using minikube service (tested with Docker driver on macOS)
-minikube service arc-nginx -n arc
-# This will open your browser automatically
-```
-
-</details>
-
-<details>
-<summary>Option D — Using Ansible + Docker (IaC)</summary>
-
-Before you start, make sure you have the following installed:
-- [Docker](https://docs.docker.com/get-docker/)
-- [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
-
-For detailed instructions, see [iac/README.md](iac/README.md)
-
-```shell
-# From the project root, provision a container and start the backend:
-./iac-docker.sh
-
-# Access the application at:
-http://localhost:8082
-
-# Remove the container:
-./iac-docker.sh destroy
-```
-
-</details>
-
----
-
-## Swagger API documentation
-
-The API documentation is automatically generated using FastAPI and can be accessed via Swagger UI at the following URL when the application is running:
-
-```shell
-# Swagger UI
-http://localhost:8000/docs
-```
-
-![Swagger UI — full API documentation](media/app-swagger-ui.png)
+![Training curves carousel](media/app-carousel.gif)
 
 ---
 
@@ -292,46 +118,12 @@ The project uses **GitLab CI/CD** with 3 stages:
 2. **Test** → Runs `pytest` on backend
 3. **Build** → Builds and pushes Docker images to Docker Hub and GitLab Container Registry
 
-On develop branch, only Lint and Test stages run.
-On main branch, all 3 stages run.
-
-<details>
-<summary>CI/CD setup instructions</summary>
-
-```shell
-# 1. Push to GitLab
-git remote add gitlab https://gitlab.com/vin-br/arc.git
-git push gitlab main
-
-# 2. Configure CI/CD Variables
-# Go to Settings → CI/CD → Variables and add:
-# - CI_REGISTRY: registry.gitlab.com
-# - CI_REGISTRY_USER: GitLab username
-# - CI_REGISTRY_PASSWORD: Personal access token (with api, read_registry, write_registry scopes)
-```
-
-</details>
-
----
-
-<figure style="max-width:auto;margin:0 auto;">
-  <img src="media/cicd-validation.png" alt="GitLab CI/CD Validation Overview" style="width:auto;height:auto;display:block;">
-  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">GitLab CI/CD validation overview</figcaption>
-</figure>
-
----
-
-<figure style="max-width:auto;margin:0 auto;">
-  <img src="media/cicd-main-validation.png" alt="GitLab CI/CD Main Branch Validation Overview" style="width:auto;height:auto;display:block;">
-  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">GitLab CI/CD main branch validation overview</figcaption>
-</figure>
-
----
-
-<figure style="max-width:auto;margin:0 auto;">
-  <img src="media/cicd-develop-validation.png" alt="GitLab CI/CD Develop Branch Validation Overview" style="width:auto;height:auto;display:block;">
-  <figcaption style="text-align:center;font-size:0.95rem;color:#555;margin-top:0.5rem;">GitLab CI/CD develop branch validation overview</figcaption>
-</figure>
+| Trigger | Lint | Test | Build (test) | Build (push) |
+|---------|:----:|:----:|:------------:|:------------:|
+| MR (any) | ✓ | ✓ | ✓ | manual (`:dev`) |
+| Merge → develop | ✓ | ✓ | — | auto (`:dev`) |
+| Merge → main | ✓ | ✓ | — | auto (CalVer + `:latest`) |
+| Direct push to develop | ✓ | ✓ | — | — |
 
 ---
 
@@ -357,48 +149,389 @@ uv run pytest backend/tests/ --cov=backend/app --cov-report=html
 
 ---
 
-## Monitoring containers with Netdata container
+## Technical stack
 
-To monitor the Docker containers running the ARC application, you can use Netdata Container. It is started with the Docker Compose setup and provides real-time monitoring of system and application metrics.
+<details>
+<summary>View full stack details</summary>
+
+- **AI Model:** Convolutional Neural Network (ConvNeXt) using PyTorch
+- **Backend:** FastAPI
+- **Frontend:** SvelteKit with Bun
+- **Reverse Proxy:** Nginx
+- **Containerization:** Docker, Docker Compose
+- **Orchestration:** Kubernetes (Minikube for local development)
+- **Infrastructure as Code (IaC):** Ansible + Docker connection plugin
+- **CI/CD:** GitLab CI/CD (Docker Hub + GitLab Container Registry)
+- **Versioning:** CalVer (YY.MM)
+
+</details>
 
 ---
 
-## Model metrics
+## Project structure
 
-Table overview of model performance metrics available in the app:
+<details>
+<summary>View project tree</summary>
 
-<img src="media/metrics-leaderboard.png" alt="Model metrics leaderboard" style="max-width:auto;height:auto;">
+```
+├── automate/               # Screenshot & GIF automation (Playwright)
+├── vision/                 # Vision model training (PyTorch)
+│   ├── classification/     #   Transfer-learning (ConvNeXt, EfficientNetV2, MobileNet, Swin-V2, MaxViT)
+│   ├── detection/          #   YOLOv8 fine-tuning
+│   ├── common/             #   Shared config, paths, visualization
+│   ├── results/            #   Metrics JSON, plots, MLflow runs
+│   └── logs/               #   Per-run training logs
+├── backend/                # FastAPI backend API
+├── data/                   # Dataset files
+│   ├── classification/     #   4-class MRI images (tracked in git)
+│   └── detection/          #   YOLOv8 bounding-box dataset (download required)
+├── frontend/               # SvelteKit frontend (Bun)
+├── models/                 # Pre-trained model weights (Git LFS)
+│   ├── classification/     #   PyTorch .pt checkpoints
+│   └── detection/          #   YOLO .pt weights
+├── iac/                    # Infrastructure as Code (Ansible + Docker)
+├── k8s/                    # Kubernetes deployment manifests
+├── nginx/                  # Nginx reverse proxy configs (prod + dev)
+├── media/                  # Screenshots and visual assets
+├── scripts/                # Utility scripts (dataset enhancement, distribution plot)
+├── docker-compose.yaml     # Docker Compose configuration
+├── docker-compose.dev.yaml # Docker Compose for development
+├── docker-dev.sh           # Convenience wrapper for dev compose
+├── .gitlab-ci.yml          # GitLab CI/CD pipeline configuration
+├── README.md               # Project documentation
+└── ...                     # Other configuration and resource files
+```    
 
-These metrics are stored in a DuckDB database located in the folder `backend/data/metrics.duckdb`.
+</details>
 
 ---
 
-## Versioning
+## Installation for users
+
+The available versions are recommended for users who want to discover the app and test it out.
+Under no circumstances should this be used to diagnose real cases including your own.
+
+<details>
+<summary>Using public Docker Hub images</summary>
+
+**Using Pre-built Docker Images**
+Public images are available on Docker Hub for easy user setup:
+- [ECHO Backend on Docker Hub](https://hub.docker.com/r/vinbr/echo-backend)
+- [ECHO Frontend on Docker Hub](https://hub.docker.com/r/vinbr/echo-frontend)
+
+Before you start:
+- make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
+
+```shell
+# Clone the repository (SSH or HTTPS):
+git clone git@gitlab.com:vin-br/echo.git # SSH
+git clone https://gitlab.com/vin-br/echo.git # HTTPS
+
+# From root directory, pull and start the containers:
+./docker.sh pull
+./docker.sh up -d
+
+# The images will be automatically pulled from Docker Hub on first run
+# Access the app via Nginx at:
+http://localhost:8080
+```
+
+The app should now be running locally on your machine through Docker containers.
+
+> The Docker backend image includes the necessary model weights, so no additional download is required.
+
+</details>
+
+## Installation for developers
+
+<details>
+<summary>Install Git LFS for model weights</summary>
+
+Make sure you have [Git LFS](https://git-lfs.github.com/) installed to download model files.
+
+```shell
+# After cloning, run:
+git lfs install
+git lfs pull
+```
+
+</details>
+
+<details>
+<summary>Option A — Using Docker developer setup</summary>
+
+Before you start: make sure you have [Docker](https://www.docker.com/get-started/) installed on your machine.
+
+```shell
+# Clone the repository with SSH:
+git clone git@gitlab.com:vin-br/echo.git
+cd echo
+
+# Pull the model files using Git LFS because they were too large for regular Git:
+git lfs pull # requires Git LFS installed
+
+# From root directory, build and start the development containers:
+./docker-dev.sh up --build
+# Or without the wrapper:
+docker compose -f docker-compose.dev.yaml up --build
+
+# Access the app via Nginx at:
+http://localhost:8081
+```
+
+```shell
+# To stop the containers, run:
+./docker-dev.sh down
+
+# To rebuild without cache:
+./docker-dev.sh build --no-cache
+```
+
+</details>
+
+<details>
+<summary>Option B — Using Kubernetes with Minikube</summary>
+
+Before you start:
+- Make sure you have [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) installed
+- Make sure you have [kubectl](https://kubernetes.io/docs/tasks/tools/) installed
+
+For detailed Kubernetes deployment instructions, see [k8s/README.md](k8s/README.md)
+
+```shell
+# # From root directory, start and deploy:
+minikube start
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+
+# Check deployment status
+# Verify that the backend and AI pods are running before continuing
+kubectl get all -n echo
+
+# Access the application
+# Note: Backend may take a minute to load the ML model on first startup
+# Be patient!
+
+# Using minikube service (tested with Docker driver on macOS)
+minikube service echo-nginx -n echo
+# This will open your browser automatically
+```
+
+</details>
+
+<details>
+<summary>Option C — Using Ansible + Docker (IaC)</summary>
+
+Before you start, make sure you have the following installed:
+- [Docker](https://docs.docker.com/get-docker/)
+- [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+
+For detailed instructions, see [iac/README.md](iac/README.md)
+
+```shell
+# From the project root, provision a container and start the backend:
+./iac/iac-docker.sh
+
+# Access the application at:
+http://localhost:8082
+
+# Remove the container:
+./iac/iac-docker.sh destroy
+```
+
+</details>
+
+---
+
+## Contribute
+
+Feel free to contribute, fork the repository, or just play with it to learn.
+
+<details>
+<summary>Documentation (API Swagger)</summary>
+
+The API documentation is automatically generated using FastAPI and can be accessed via Swagger UI at the following URL when the application is running:
+
+```shell
+# Swagger UI
+http://localhost:8000/docs
+```
+
+</details>
+
+<details>
+<summary>Training environments</summary>
+
+Both CLIs run locally on the developer's machine for optimal performance. On macOS with Apple Silicon, PyTorch automatically uses **MPS** (Metal Performance Shaders) for GPU-accelerated training.
+
+```shell
+# Local training (recommended)
+# Uses MPS on Apple Silicon or CUDA on Linux — fastest option.
+cd vision
+uv sync
+# To start interactive training
+uv run python -m vision.classification.cli --interactive
+```
+
+```shell
+# Docker alternative (optional)
+# CPU-only, useful for reproducible environments but significantly slower.
+./docker-dev.sh --profile training up -d
+docker exec -it echo-vision-dev bash
+```
+
+</details>
+
+<details>
+<summary>Training classification models</summary>
+
+Train a classification model using transfer learning (ConvNeXt, EfficientNetV2, MobileNet, Swin-V2, MaxViT). 
+
+> Optuna automatically finds optimal hyperparameters (learning rate, batch size) before the full training run.
+
+```shell
+# From the vision/ directory:
+
+# Interactive mode — prompts for model, epochs, etc. Optuna finds optimal hyperparameters.
+uv run python -m vision.classification.cli --interactive
+
+# Direct mode — Optuna searches for the best lr and batch size, then trains
+uv run python -m vision.classification.cli convnext-tiny --epochs 150
+
+# Skip Optuna search — provide both lr and batch-size to train directly
+uv run python -m vision.classification.cli convnext-tiny --epochs 150 --batch-size 16 --lr 5e-4
+
+# Or launch training with specific parameters sequentially since it can early stop based on Optuna results:
+uv run python -m vision.classification.cli convnext-tiny --epochs 150 --batch-size 16 && \
+uv run python -m vision.classification.cli mobilenet-v3-large --epochs 150 --batch-size 16 && \
+uv run python -m vision.classification.cli efficientnet-v2-s --epochs 150 --batch-size 16
+
+# List available model architectures
+uv run python -m vision.classification.cli --list-models
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `model` | *(required or interactive)* | Model key from registry (`convnext-tiny`, `convnext-small`, `efficientnet-v2-s`, `mobilenet-v3-large`, `swin-v2-t`, `maxvit-t`) |
+| `--epochs` | `50` | Full training epochs |
+| `--batch-size` | *Optuna* | Batch size (omit to let Optuna find optimal value) |
+| `--lr` | *Optuna* | Learning rate (omit to let Optuna find optimal value) |
+| `--image-size` | `224` | Input resolution |
+| `--n-trials` | `20` | Number of Optuna search trials |
+| `--no-augment` | — | Disable data augmentation |
+| `--no-normalize` | — | Disable ImageNet normalization |
+
+**Outputs:**
+- Checkpoint → `models/classification/<name>.pt`
+- Metrics JSON → `vision/results/<name>.json`
+- Training curves plot → `vision/results/plots/<name>.html`
+- Training log → `vision/logs/<name>.log`
+- MLflow run → `vision/results/mlruns/`
+
+</details>
+
+<details>
+<summary>Training object-detection models</summary>
+
+Fine-tune YOLOv8 on the brain tumor detection dataset.
+
+```shell
+# From the vision/ directory:
+
+# Default training (yolov8n, 100 epochs, batch 16, 640px)
+uv run python -m vision.detection.cli
+
+# Custom parameters
+uv run python -m vision.detection.cli --model yolov8s.pt --epochs 50 --batch 32 --device mps
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--model` | `yolov8n.pt` | YOLO base model (`yolov8n.pt`, `yolov8s.pt`, etc.) |
+| `--epochs` | `100` | Max training epochs |
+| `--batch` | `16` | Batch size |
+| `--imgsz` | `640` | Input image size |
+| `--lr0` | `0.01` | Initial learning rate |
+| `--patience` | `15` | Early stopping patience |
+| `--device` | auto-detected | Device (`cpu`, `0` for GPU, `mps` for Apple Silicon) |
+| `--data` | `data/detection/data.yaml` | Path to dataset YAML |
+
+**Outputs:**
+- Best weights → `models/detection/yolo-brain-tumor.pt`
+- Training run → `vision/results/detection/<run-name>/`
+
+</details>
+
+<details>
+<summary>Model weights — Committing a model</summary>
+
+Place the `.pt` file in `models/classification/` or `models/detection/`. The `.gitattributes` glob `models/**/*.pt` auto-tracks it via LFS.
+
+```shell
+cp ~/training-output/my-model.pt models/classification/
+git add models/classification/my-model.pt
+git commit -m "chore: add my-model checkpoint"
+git push
+```
+
+</details>
+
+<details>
+<summary>Model weights — Removing a tracked model</summary>
+
+All `.pt` checkpoint files under `models/` are tracked by [Git LFS](https://git-lfs.github.com).
+Always use `git rm`, not manual deletion, so LFS metadata stays consistent.
+
+```shell
+git rm models/classification/old-model.pt
+git commit -m "chore: remove old-model checkpoint"
+git push
+```
+
+</details>
+
+<details>
+<summary>Versioning</summary>
 
 Versioning follows CalVer: `YY.MM.PATCH` — where `YY.MM` reflects when the work was done and `PATCH` is incremented for each subsequent release within the same month. For example, `26.05.0` is the first release of May 2026, followed by `26.05.1`, `26.05.2`, etc.
 
----
-
-## Generating screenshots and GIFs
-
-The `automate/` service uses Playwright with Firefox to capture screenshots and GIFs for this README.
+</details>
 
 <details>
-<summary>Automate commands</summary>
+<summary>Generating dataset distribution plot</summary>
+
+```shell
+uv run --no-project --with plotly --with kaleido python3 scripts/gen_distribution_plot.py
+```
+
+Output: `media/data-distribution.png`
+
+</details>
+
+<details>
+<summary>Generating screenshots and GIFs</summary>
+
+The `automate/` service uses Playwright with Firefox to capture screenshots and GIFs for this README. Training-curve plots are generated automatically during training, so running the automate captures everything in one go.
 
 **Using Docker (recommended):**
 
 ```bash
 # First, run the test coverage report
-`cd backend && uv run pytest tests/ --cov=app --cov-report=html`
+cd backend && uv run pytest tests/ --cov=app --cov-report=html && cd ..
 
-# Then, make sure the dev stack is running:
-`./docker-dev.sh up -d`
+# Make sure the dev stack is running:
+./docker-dev.sh up -d
 
-# Finally, run the automate to generate screenshots and GIFs:
-./docker-dev.sh run --rm automate-dev all           # Generate everything
-./docker-dev.sh run --rm automate-dev screenshots   # Screenshots only
-./docker-dev.sh run --rm automate-dev gifs          # GIFs only
+# Generate everything (screenshots + GIFs):
+./docker-dev.sh run --rm automate-dev all
+
+# Or generate specific assets:
+./docker-dev.sh run --rm automate-dev screenshots                   # Static PNGs only
+./docker-dev.sh run --rm automate-dev gifs                          # All GIFs
+./docker-dev.sh run --rm automate-dev gifs --only overview          # Overview GIF only
+./docker-dev.sh run --rm automate-dev gifs --only use-cases         # Use-case GIFs only
+./docker-dev.sh run --rm automate-dev gifs --only carousel          # Training curves GIF
+./docker-dev.sh run --rm automate-dev gifs --only leaderboard       # Leaderboard toggle GIF
 ```
 
 Output goes to the `media/` directory.
@@ -410,9 +543,9 @@ Output goes to the `media/` directory.
 ## Resources
 
 <details>
-<summary>Datasets</summary>
+<summary>Classification Dataset</summary>
 
-A combination of these datasets:
+Source: combination of these datasets:
 - [dataset 1](https://www.kaggle.com/datasets/sartajbhuvaji/brain-tumor-classification-mri)
 - [dataset 2](https://www.kaggle.com/datasets/thomasdubail/brain-tumors-256x256/data)
 - [dataset 3](https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset?rvi=1)
@@ -424,6 +557,15 @@ Steps taken to clean the dataset:
 4. Images were split between training and testing (0.80/0.20).
 
 </details>
+
+
+<details>
+<summary>Object Detection Dataset</summary>
+
+Source: [Roboflow – Brain Tumor Detection](https://universe.roboflow.com/academia-keleu/brain-tumor-bb6yj) — download in YOLOv8 format.
+
+</details>
+
 
 <details>
 <summary>Documentation</summary>
@@ -441,12 +583,18 @@ Steps taken to clean the dataset:
 - [Kubernetes Docs](https://kubernetes.io/docs/home/)
 - [Minikube Docs](https://minikube.sigs.k8s.io/docs/)
 - [Ansible Docs](https://docs.ansible.com/ansible/latest/)
-- [Netdata Docs](https://learn.netdata.cloud/docs/agent/packaging/docker)
 
 </details>
 
 ---
 
-## Disclamer
+## License and copyright
+
+ECHO is licensed under the Apache 2.0 License. See LICENSE for more details.
+Copyright (c) 2026 Vincent Boettcher. All rights reserved.
+
+---
+
+## Disclaimer
 
 This project is built for training and learning purposes, do not use it for real use cases.

@@ -3,7 +3,7 @@
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import Response
@@ -15,13 +15,14 @@ from backend.app.paths import (
     verify_paths,
 )
 from backend.app.inference import predict_image
+from backend.app.detection import detect_and_annotate
 from backend.app.database import MetricsDatabase
 
 # Verify necessary paths exist
 verify_paths(skip_files=os.getenv("CI") is not None)
 
 # Global database instance
-database: Optional[MetricsDatabase] = None
+database: MetricsDatabase | None = None
 
 
 # Lifespan event to load the model at startup
@@ -48,9 +49,9 @@ async def lifespan(_: FastAPI):
 
 # Create FastAPI app with lifespan event
 app = FastAPI(
-    title="ARC API",
-    description="API to augment, recognize and classify brain tumor images using deep learning models",
-    version="26.05.1",
+    title="ECHO API",
+    description="API to detect, classify, and annotate brain tumor images using deep learning models",
+    version="26.05.2",
     docs_url="/docs",  # Swagger UI
     lifespan=lifespan,
 )
@@ -58,9 +59,21 @@ app = FastAPI(
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # enforce 25 MB cap
 
 
+async def _read_upload(file: UploadFile) -> bytes:
+    """Read and validate an uploaded file (shared by predict + detect)."""
+    file_bytes = await file.read()
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+    if len(file_bytes) == 0:
+        raise HTTPException(status_code=400, detail="The uploaded file was empty")
+    if len(file_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail="Image exceeds the 25 MB limit")
+    return file_bytes
+
+
 # Health check endpoint
 @app.get("/healthz")
-async def healthz() -> Dict[str, str]:
+async def healthz() -> dict[str, str]:
     """Health check endpoint for Docker healthcheck."""
     return {"status": "ok"}
 
@@ -72,16 +85,9 @@ async def _favicon() -> Response:
 
 
 @app.post("/api/predict")
-async def predict(file1: UploadFile = File(...)) -> Dict[str, Any]:
+async def predict(file1: UploadFile = File(...)) -> dict[str, Any]:
     """Accept an uploaded image and return the model prediction as JSON."""
-    file_bytes = await file1.read()
-
-    if not file1.filename:
-        raise HTTPException(status_code=400, detail="No file provided")
-    if len(file_bytes) == 0:
-        raise HTTPException(status_code=400, detail="The uploaded file was empty")
-    if len(file_bytes) > MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=400, detail="Image exceeds the 25 MB limit")
+    file_bytes = await _read_upload(file1)
 
     try:
         start = time.perf_counter()
@@ -100,19 +106,60 @@ async def predict(file1: UploadFile = File(...)) -> Dict[str, Any]:
 
 
 @app.get("/api/latency")
-async def get_latency() -> Dict[str, Any]:
+async def get_latency() -> dict[str, Any]:
     """Return rolling average inference latency from recent predictions."""
     if database is None:
         return {"avg_ms": None, "count": 0}
     return database.get_latency()
 
 
+@app.post("/api/detect")
+async def detect(file1: UploadFile = File(...)) -> dict[str, Any]:
+    """Classify tumour type and annotate detected regions on the image."""
+    file_bytes = await _read_upload(file1)
+
+    try:
+        result = predict_image(file_bytes, MODEL_PATH)
+        detection = detect_and_annotate(
+            file_bytes, result["display_label"], result["confidence"]
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    return {
+        "prediction": result["display_label"],
+        "confidence": result["confidence"],
+        **detection,
+    }
+
+
 @app.get("/api/metrics")
-async def get_metrics() -> List[Dict[str, Any]]:
+async def get_metrics() -> list[dict[str, Any]]:
     """Generic metrics endpoint (same data as /api/metrics for now)."""
     if database is None:
         raise HTTPException(status_code=503, detail="Database not initialized")
     return database.get_metrics()
+
+
+@app.get("/api/plots")
+async def list_plots() -> list[str]:
+    """Return available training-curve plot names."""
+    plots_dir = RESULTS_DIR / "plots"
+    if not plots_dir.is_dir():
+        return []
+    return sorted(p.stem for p in plots_dir.glob("*.html") if not p.stem.endswith("-cm"))
+
+
+@app.get("/api/plots/{name}")
+async def get_plot(name: str) -> Response:
+    """Serve a training-curve plot as HTML."""
+    # Sanitise: only allow filename-safe characters
+    if not all(c.isalnum() or c in "-_" for c in name):
+        raise HTTPException(status_code=400, detail="Invalid plot name")
+    plot_path = RESULTS_DIR / "plots" / f"{name}.html"
+    if not plot_path.is_file():
+        raise HTTPException(status_code=404, detail="Plot not found")
+    return Response(content=plot_path.read_text(encoding="utf-8"), media_type="text/html")
 
 
 # Run the app with Uvicorn if executed directly

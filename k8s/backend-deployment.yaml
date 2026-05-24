@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: arc-backend
-  namespace: arc
+  name: echo-backend
+  namespace: echo
   labels:
-    app: arc-backend
+    app: echo-backend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: arc-backend
+      app: echo-backend
   template:
     metadata:
       labels:
-        app: arc-backend
+        app: echo-backend
     spec:
       initContainers:
       - name: setup
@@ -24,7 +24,7 @@ spec:
           mountPath: /app/vision/results
       containers:
       - name: backend
-        image: vinbr/arc-backend:latest
+        image: vinbr/echo-backend:latest
         ports:
         - containerPort: 8000
         volumeMounts:

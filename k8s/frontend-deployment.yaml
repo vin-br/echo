@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: arc-frontend
-  namespace: arc
+  name: echo-frontend
+  namespace: echo
   labels:
-    app: arc-frontend
+    app: echo-frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: arc-frontend
+      app: echo-frontend
   template:
     metadata:
       labels:
-        app: arc-frontend
+        app: echo-frontend
     spec:
       containers:
       - name: frontend
-        image: vinbr/arc-frontend:latest
+        image: vinbr/echo-frontend:latest
         ports:
         - containerPort: 3000
         env:
         - name: BACKEND_URL
-          value: "http://arc-backend:8000"
+          value: "http://echo-backend:8000"
         livenessProbe:
           httpGet:
             path: /

@@ -1,6 +1,6 @@
-"""ARC README automation — screenshots and GIFs.
+"""ECHO README automation — screenshots and GIFs.
 
-Captures screenshots and animated GIFs of the running ARC application
+Captures screenshots and animated GIFs of the running ECHO application
 for use in the project README. Uses Playwright with Firefox (headless).
 
 Usage:
@@ -20,8 +20,8 @@ Environment variables (used in Docker):
     HTMLCOV_DIR      Coverage report dir    (default: ../htmlcov)
 
 Configuration:
-    VIEWPORT         Browser viewport size  (1280 x 900)
-    GIF_FPS          Frames per second      (15)
+    VIEWPORT         Browser viewport size  (1440 x 1000)
+    GIF_FPS          Frames per second      (20)
     TEST_IMAGES      Dict mapping class labels to image paths inside DATA_DIR.
                      Change the file names here to pick different test images.
                      Each must produce the correct prediction for its class.
@@ -40,6 +40,8 @@ import os
 import socketserver
 import sys
 import threading
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 from PIL import Image
@@ -57,20 +59,21 @@ BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
 MEDIA_DIR = Path(os.environ.get("MEDIA_DIR", str(_DEFAULT_ROOT / "media")))
 DATA_DIR = Path(os.environ.get("DATA_DIR", str(_DEFAULT_ROOT / "data")))
 HTMLCOV_DIR = Path(os.environ.get("HTMLCOV_DIR", str(_DEFAULT_ROOT / "htmlcov")))
+MLFLOW_URL = os.environ.get("MLFLOW_URL", "http://localhost:5001")
 
-VIEWPORT = {"width": 1280, "height": 900}
-GIF_FPS = 15
+VIEWPORT = {"width": 1440, "height": 1000}
+GIF_FPS = 20
 
 # ── Test images ──────────────────────────────────────────────────────────
 # One representative image per class.  Change the file name to use a
 # different sample — just make sure the model predicts the correct label.
 #
-# Available files live under  data/testing/<class_folder>/.
+# Available files live under  data/classification/test/<class_folder>/.
 TEST_IMAGES = {
-    "glioma": "testing/glioma_tumor/G_0002.jpg",
-    "meningioma": "testing/meningioma_tumor/M_0021.jpg",
-    "no-tumor": "testing/no_tumor/N_0009.jpg",
-    "pituitary": "testing/pituitary_tumor/P_2603.jpg",
+    "glioma": "classification/test/glioma_tumor/G_0002.jpg",
+    "meningioma": "classification/test/meningioma_tumor/M_0021.jpg",
+    "no-tumor": "classification/test/no_tumor/N_0009.jpg",
+    "pituitary": "classification/test/pituitary_tumor/P_0008.jpg",
 }
 
 
@@ -131,6 +134,17 @@ def _click_predict(page: Page) -> None:
     """Click the predict button and wait for a result."""
     page.click("button.primary-action")
     page.wait_for_selector(".status-value strong", timeout=60_000)
+    page.wait_for_timeout(500)
+
+
+def _click_detect(page: Page) -> None:
+    """Click the Detect & Annotate button and wait for the annotated image.
+
+    After prediction, the 'Ask ECHO' button is replaced by 'Detect & Annotate',
+    so the detect button is the first (and only) .primary-action button.
+    """
+    page.click("button.primary-action")
+    page.wait_for_selector("img.preview-image[alt='Annotated detection']", timeout=60_000)
     page.wait_for_timeout(500)
 
 
@@ -201,17 +215,19 @@ def take_screenshots(page: Page) -> None:
     """Capture all static PNG screenshots."""
     print("\n[screenshots]")
 
-    # Leaderboard table
+    # Leaderboard — capture the transparency section
     page.goto(FRONTEND_URL)
     _wait(page, 2000)
     _wait_for_fonts(page)
-    section = page.locator(".leaderboard-section")
+    section = page.locator(".transparency-section")
     try:
         section.wait_for(timeout=30_000)
     except Exception:
         page.screenshot(path=str(MEDIA_DIR / "_debug-failure.png"), full_page=True)
-        _log("FAIL  .leaderboard-section not found -- saved _debug-failure.png")
+        _log("FAIL  .transparency-section not found -- saved _debug-failure.png")
         raise
+    _center_on(page, ".transparency-section .leaderboard-card")
+    page.wait_for_timeout(300)
     section.screenshot(path=str(MEDIA_DIR / "metrics-leaderboard.png"))
     _log("saved metrics-leaderboard.png")
 
@@ -224,6 +240,7 @@ def take_screenshots(page: Page) -> None:
 
     # Pytest coverage report
     _take_coverage_screenshot(page)
+    _take_mlflow_screenshot(page)
 
 
 def _take_coverage_screenshot(page: Page) -> None:
@@ -250,8 +267,44 @@ def _take_coverage_screenshot(page: Page) -> None:
             srv.shutdown()
 
 
+def _take_mlflow_screenshot(page: Page) -> None:
+    """Screenshot the MLflow experiment tracking UI."""
+    try:
+        page.goto(MLFLOW_URL, timeout=5_000)
+        _wait(page, 2000)
+        page.screenshot(path=str(MEDIA_DIR / "mlflow-ui.png"), full_page=True)
+        _log("saved mlflow-ui.png")
+    except Exception:
+        _log("skip  MLflow UI not reachable")
+
+
+def take_leaderboard_gif(page: Page) -> None:
+    """Capture the leaderboard card scrolling through entries."""
+    print("\n[gif] leaderboard")
+    rec = GifRecorder()
+
+    page.goto(FRONTEND_URL)
+    _wait(page, 1000)
+    _wait_for_fonts(page)
+
+    leaderboard_card = page.locator(".transparency-section .leaderboard-card")
+    try:
+        leaderboard_card.wait_for(timeout=30_000)
+    except Exception:
+        _log("skip  leaderboard card not found")
+        return
+
+    _center_on(page, ".transparency-section .leaderboard-card")
+    page.wait_for_timeout(300)
+
+    # Hold on the leaderboard view
+    rec.hold(page, 4000)
+
+    rec.save(MEDIA_DIR / "app-leaderboard.gif")
+
+
 # ---------------------------------------------------------------------------
-# GIF: app overview  (~12-15 s at 15 fps)
+# GIF: app overview  (~12-15 s at 20 fps)
 # ---------------------------------------------------------------------------
 
 def take_overview_gif(page: Page) -> None:
@@ -274,7 +327,7 @@ def take_overview_gif(page: Page) -> None:
 
     # 1. Hold on hero section (top of page)
     _scroll_to(page, 0)
-    rec.hold(page, 1500)
+    rec.hold(page, 2500)
 
     # 2. Smooth scroll to bottom of page
     rec.smooth_scroll(page, max_scroll, duration_s=3.5)
@@ -295,17 +348,53 @@ def take_overview_gif(page: Page) -> None:
 
     # 4. Upload image
     _upload_image(page, test_img)
-    rec.hold(page, 1500)
+    rec.hold(page, 2000)
 
     # 5. Predict
     _click_predict(page)
-    rec.hold(page, 2500)
+    rec.hold(page, 2000)
+
+    # 6. Detect & Annotate
+    _click_detect(page)
+    rec.hold(page, 3000)
 
     rec.save(MEDIA_DIR / "app-overview.gif")
 
 
 # ---------------------------------------------------------------------------
-# GIFs: per-class use cases  (15 fps)
+# GIF: carousel — cycle through training curve tabs
+# ---------------------------------------------------------------------------
+
+def take_carousel_gif(page: Page) -> None:
+    """Cycle through training curve tabs."""
+    print("\n[gif] carousel")
+    rec = GifRecorder()
+
+    page.goto(FRONTEND_URL)
+    _wait(page, 1000)
+    _wait_for_fonts(page)
+
+    curves_card = page.locator(".curves-card").first
+    try:
+        curves_card.wait_for(timeout=30_000)
+    except Exception:
+        _log("skip  no curves card found")
+        return
+
+    _center_on(page, ".curves-card")
+    rec.hold(page, 1500)
+
+    tabs = curves_card.locator(".card-tab")
+    for i in range(tabs.count()):
+        tabs.nth(i).click()
+        page.wait_for_timeout(1200)
+        rec.hold(page, 2500)
+
+    rec.save(MEDIA_DIR / "app-carousel.gif")
+
+
+# ---------------------------------------------------------------------------
+# GIFs: per-class use cases
 # ---------------------------------------------------------------------------
 
 def take_use_case_gifs(page: Page) -> None:
@@ -326,15 +415,19 @@ def take_use_case_gifs(page: Page) -> None:
 
         # Centre on the upload card
         _center_on(page, ".upload-section")
-        rec.hold(page, 1000)
+        rec.hold(page, 1500)
 
         # Upload
         _upload_image(page, img_path)
-        rec.hold(page, 1500)
+        rec.hold(page, 2000)
 
         # Predict
         _click_predict(page)
-        rec.hold(page, 2500)
+        rec.hold(page, 2000)
+
+        # Detect & Annotate
+        _click_detect(page)
+        rec.hold(page, 3000)
 
         rec.save(MEDIA_DIR / f"app-use-case-{label}.gif")
 
@@ -343,8 +436,23 @@ def take_use_case_gifs(page: Page) -> None:
 # CLI
 # ---------------------------------------------------------------------------
 
+def _regenerate_plots() -> None:
+    """Trigger plot regeneration via the backend API.
+
+    The backend serves training-curve plots from ``vision/results/plots/``.
+    These are generated during training, so they already exist. This step
+    verifies the backend can serve them.
+    """
+    try:
+        with urllib.request.urlopen(f"{BACKEND_URL}/api/plots", timeout=10) as resp:
+            data = resp.read()
+        _log(f"backend /api/plots reachable ({len(data)} bytes)")
+    except urllib.error.URLError:
+        _log("warn  backend /api/plots not reachable — plots may be stale")
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ARC README automation")
+    parser = argparse.ArgumentParser(description="ECHO README automation")
     parser.add_argument("--frontend", default=None, help="Override FRONTEND_URL")
     parser.add_argument("--backend", default=None, help="Override BACKEND_URL")
 
@@ -356,7 +464,7 @@ def main() -> None:
     gif_parser.add_argument(
         "--only",
         nargs="+",
-        choices=["overview", "use-cases"],
+        choices=["overview", "use-cases", "carousel", "leaderboard"],
         help="Generate only specific GIF groups",
     )
 
@@ -399,6 +507,8 @@ def main() -> None:
                 page.wait_for_timeout(2000)
 
         try:
+            _regenerate_plots()
+
             if args.command in ("all", "screenshots"):
                 take_screenshots(page)
 
@@ -406,12 +516,16 @@ def main() -> None:
                 targets = (
                     set(args.only)
                     if hasattr(args, "only") and args.only
-                    else {"overview", "use-cases"}
+                    else {"overview", "use-cases", "carousel", "leaderboard"}
                 )
                 if "overview" in targets:
                     take_overview_gif(page)
                 if "use-cases" in targets:
                     take_use_case_gifs(page)
+                if "carousel" in targets:
+                    take_carousel_gif(page)
+                if "leaderboard" in targets:
+                    take_leaderboard_gif(page)
         finally:
             ctx.close()
             browser.close()

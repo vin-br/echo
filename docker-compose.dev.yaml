@@ -1,31 +1,24 @@
 services:
 
   vision-dev:
-    image: arc-vision:latest
-    container_name: arc-vision-dev
+    image: echo-vision:dev
+    container_name: echo-vision-dev
     build:
       context: .
       dockerfile: vision/Dockerfile
-    ports:
-      - "8001:8001"
+    profiles:
+      - training
     volumes:
       - ./vision:/app/vision
       - ./models:/app/models
       - ./data:/app/data
-      - results:/app/vision/results
     restart: unless-stopped
     stdin_open: true
     tty: true
-    healthcheck:
-      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    
+
   backend-dev:
-    image: arc-backend:latest
-    container_name: arc-backend-dev
+    image: echo-backend:dev
+    container_name: echo-backend-dev
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -33,7 +26,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app/backend
-      - results:/app/vision/results:ro
+      - ./vision/results:/app/vision/results:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz').read()"]
@@ -43,7 +36,8 @@ services:
       start_period: 40s
 
   frontend-dev:
-    container_name: arc-frontend-dev
+    image: echo-frontend:dev
+    container_name: echo-frontend-dev
     build:
       context: ./frontend
       target: deps
@@ -63,8 +57,8 @@ services:
     restart: unless-stopped
 
   nginx-dev:
-    image: nginx:alpine
-    container_name: arc-nginx-dev
+    image: nginx:1.28-alpine
+    container_name: echo-nginx-dev
     ports:
       - "8081:80"
     volumes:
@@ -76,22 +70,8 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  netdata-dev:
-    image: netdata/netdata:latest
-    container_name: arc-netdata-dev
-    hostname: arc-monitoring-dev
-    ports:
-      - "19998:19999"
-    cap_add:
-      - SYS_PTRACE
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    restart: unless-stopped
-
   automate-dev:
-    container_name: arc-automate-dev
+    container_name: echo-automate-dev
     build:
       context: ./automate
     profiles:
@@ -112,5 +92,17 @@ services:
       backend-dev:
         condition: service_healthy
 
+  mlflow-dev:
+    image: ghcr.io/mlflow/mlflow:v3.1.0
+    container_name: echo-mlflow-dev
+    ports:
+      - "5001:5000"
+    volumes:
+      - mlflow-data:/mlflow
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+    profiles:
+      - tools
+    restart: unless-stopped
+
 volumes:
-  results:
+  mlflow-data:

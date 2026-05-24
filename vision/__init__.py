@@ -1,1 +1,1 @@
-"""ARC Vision Package."""
+"""ECHO Vision Package."""

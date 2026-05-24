@@ -1,28 +1,8 @@
 services:
 
-  vision:
-    image: vinbr/arc-vision:latest
-    container_name: arc-vision
-    build:
-      context: .
-      dockerfile: vision/Dockerfile
-    ports:
-      - "8001:8001"
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
-    stdin_open: true
-    tty: true
-    healthcheck:
-      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    
   backend:
-    image: vinbr/arc-backend:latest
-    container_name: arc-backend
+    image: vinbr/echo-backend:26.05.2
+    container_name: echo-backend
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -37,8 +17,8 @@ services:
       start_period: 40s
 
   frontend:
-    image: vinbr/arc-frontend:latest
-    container_name: arc-frontend
+    image: vinbr/echo-frontend:26.05.2
+    container_name: echo-frontend
     build:
       context: ./frontend
     ports:
@@ -57,8 +37,8 @@ services:
       start_period: 15s
 
   nginx:
-    image: nginx:alpine
-    container_name: arc-nginx
+    image: nginx:1.28-alpine
+    container_name: echo-nginx
     ports:
       - "8080:80"
     volumes:
@@ -75,16 +55,17 @@ services:
       timeout: 5s
       retries: 3
 
-  netdata:
-    image: netdata/netdata:latest
-    container_name: arc-netdata
-    hostname: arc-monitoring
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.1.0
+    container_name: echo-mlflow
     ports:
-      - "19999:19999"
-    cap_add:
-      - SYS_PTRACE
+      - "5001:5000"
     volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - mlflow-data:/mlflow
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+    profiles:
+      - tools
     restart: unless-stopped
+
+volumes:
+  mlflow-data:

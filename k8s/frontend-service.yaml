@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: arc-frontend
-  namespace: arc
+  name: echo-frontend
+  namespace: echo
 spec:
   type: ClusterIP
   selector:
-    app: arc-frontend
+    app: echo-frontend
   ports:
   - protocol: TCP
     port: 3000

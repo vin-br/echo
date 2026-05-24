@@ -27,7 +27,7 @@ tests/
 
 # IDE
 .vscode/
-arc.code-workspace
+echo.code-workspace
 
 # Scripts
 scripts/
@@ -42,7 +42,6 @@ media/
 iac/
 k8s/
 nginx/
-frontend/
 
 # Docker files
 docker-compose*.y*ml
