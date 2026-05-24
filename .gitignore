@@ -30,21 +30,12 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
 # PyBuilder
 target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+*.ipynb
 
 # IPython
 profile_default/
@@ -63,11 +54,38 @@ venv.bak/
 # Unit test / coverage reports
 .pytest_cache/
 .coverage
-.htmlcov/
-htmlcov
+htmlcov/
 
-# IaC: Ansible and Vagrant
+# IaC: Ansible
 *.retry
 playbooks/*.retry
-.vagrant/
 *.log
+
+# Node / SvelteKit
+node_modules/
+.svelte-kit/
+
+# DuckDB
+*.duckdb
+*.duckdb.wal
+
+# MLflow
+mlruns/
+
+# Caches
+.ruff_cache/
+.cache/
+
+# YOLO / Ultralytics artifacts
+**/args.yaml
+**/labels.jpg
+**/labels.png
+**/results.csv
+**/labels.cache
+
+# Base YOLO model (auto-downloaded by ultralytics)
+vision/yolov8n.pt
+
+# Project-specific
+vision/results/detection/*/weights/
+vision/results/detection/*/train_batch*.jpg

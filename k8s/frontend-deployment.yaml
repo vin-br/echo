@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-frontend
+  namespace: echo
+  labels:
+    app: echo-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo-frontend
+  template:
+    metadata:
+      labels:
+        app: echo-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: vinbr/echo-frontend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: BACKEND_URL
+          value: "http://echo-backend:8000"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3

@@ -1,0 +1,108 @@
+services:
+
+  vision-dev:
+    image: echo-vision:dev
+    container_name: echo-vision-dev
+    build:
+      context: .
+      dockerfile: vision/Dockerfile
+    profiles:
+      - training
+    volumes:
+      - ./vision:/app/vision
+      - ./models:/app/models
+      - ./data:/app/data
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  backend-dev:
+    image: echo-backend:dev
+    container_name: echo-backend-dev
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./vision/results:/app/vision/results:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend-dev:
+    image: echo-frontend:dev
+    container_name: echo-frontend-dev
+    build:
+      context: ./frontend
+      target: deps
+    ports:
+      - "5173:5173"
+    environment:
+      - BACKEND_URL=http://backend-dev:8000
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/static:/app/static
+      - ./frontend/svelte.config.js:/app/svelte.config.js
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+    command: ["bun", "run", "dev", "--", "--host", "0.0.0.0"]
+    depends_on:
+      backend-dev:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx-dev:
+    image: nginx:1.28-alpine
+    container_name: echo-nginx-dev
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx/nginx-dev.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      frontend-dev:
+        condition: service_started
+      backend-dev:
+        condition: service_healthy
+    restart: unless-stopped
+
+  automate-dev:
+    container_name: echo-automate-dev
+    build:
+      context: ./automate
+    profiles:
+      - tools
+    volumes:
+      - ./media:/app/media
+      - ./data:/app/data:ro
+      - ./backend/htmlcov:/app/htmlcov:ro
+    environment:
+      - FRONTEND_URL=http://nginx-dev:80
+      - BACKEND_URL=http://backend-dev:8000
+      - MEDIA_DIR=/app/media
+      - DATA_DIR=/app/data
+      - HTMLCOV_DIR=/app/htmlcov
+    depends_on:
+      nginx-dev:
+        condition: service_started
+      backend-dev:
+        condition: service_healthy
+
+  mlflow-dev:
+    image: ghcr.io/mlflow/mlflow:v3.1.0
+    container_name: echo-mlflow-dev
+    ports:
+      - "5001:5000"
+    volumes:
+      - mlflow-data:/mlflow
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+    profiles:
+      - tools
+    restart: unless-stopped
+
+volumes:
+  mlflow-data:

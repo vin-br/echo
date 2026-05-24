@@ -2,15 +2,16 @@
 
 import io
 import re
+import sys
 from pathlib import Path
-from typing import Dict, cast
+from typing import cast
 
 import torch
 from PIL import Image, UnidentifiedImageError
 from torch import nn
 from torchvision import transforms
 
-from shared.config import (
+from backend.app.config import (
     CLASS_LABELS,
     DEVICE,
     IMAGENET_MEAN,
@@ -72,16 +73,17 @@ def load_model(model_path: Path) -> nn.Module:
     if _MODEL is not None and _CURRENT_MODEL_PATH == model_path:
         return _MODEL
 
-    # Try loading as TorchScript first
-    try:
-        scripted = torch.jit.load(str(model_path), map_location=DEVICE)
-        if isinstance(scripted, nn.Module):
-            scripted.eval()
-            _MODEL = scripted
-            _CURRENT_MODEL_PATH = model_path
-            return scripted
-    except (RuntimeError, ValueError, FileNotFoundError):
-        pass
+    # Try loading as TorchScript first (deprecated on Python 3.14+)
+    if sys.version_info < (3, 14):
+        try:
+            scripted = torch.jit.load(str(model_path), map_location=DEVICE)
+            if isinstance(scripted, nn.Module):
+                scripted.eval()
+                _MODEL = scripted
+                _CURRENT_MODEL_PATH = model_path
+                return scripted
+        except (RuntimeError, ValueError, FileNotFoundError):
+            pass
 
     # Load as state dict
     checkpoint = torch.load(model_path, map_location=DEVICE, weights_only=True)
@@ -136,7 +138,7 @@ def _format_label(label: str) -> str:
     return label.replace("_", " ").title()
 
 
-def predict_image(file_bytes: bytes, model_path: Path) -> Dict[str, float | str]:
+def predict_image(file_bytes: bytes, model_path: Path) -> dict[str, float | str]:
     """Run inference on uploaded image and return prediction results.
 
     Returns:

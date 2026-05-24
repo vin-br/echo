@@ -19,9 +19,6 @@ env/
 .git/
 .gitignore
 *.md
-TODO.md
-CHANGELOG.md
-README.md
 
 # Testing
 tests/
@@ -30,7 +27,7 @@ tests/
 
 # IDE
 .vscode/
-arc.code-workspace
+echo.code-workspace
 
 # Scripts
 scripts/
@@ -39,6 +36,17 @@ scripts/
 pyproject.toml
 uv.lock
 
-# Docker
-docker-compose.yml
-*.Dockerfile
+# Data and assets not needed in images
+data/
+media/
+iac/
+k8s/
+nginx/
+
+# Docker files
+docker-compose*.y*ml
+docker-dev.sh
+*Dockerfile
+.dockerignore
+.gitlab-ci.yml
+LICENSE

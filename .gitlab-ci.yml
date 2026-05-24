@@ -1,9 +1,19 @@
-# ARC Project GitLab CI/CD Pipeline Configuration
+# ECHO Project GitLab CI/CD Pipeline Configuration
 
 stages:
   - lint
   - test
   - build
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+variables:
+  # CalVer version — update on each release
+  ECHO_VERSION: "26.05.2"
 
 # =================================================
 # STAGE 1: LINT - Code formatting and static checks
@@ -11,24 +21,15 @@ stages:
 
 lint:python:
   stage: lint
-  image: python:3.14.2-slim
+  image: python:3.14.5-slim
   variables:
     UV_SYSTEM_PYTHON: "1"
-    UV_CACHE_DIR: ".uv-cache"
-    UV_LINK_MODE: "symlink"
-  cache:
-    key:
-      files:
-        - pyproject.toml
-    paths:
-      - .uv-cache/
   before_script:
     - apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
     - curl -LsSf https://astral.sh/uv/install.sh | sh
     - export PATH="$HOME/.local/bin:$PATH"
-    - uv sync --frozen --group dev
   script:
-    - uv run ruff check backend/ ai/ shared/
+    - uvx ruff check --line-length 100 backend/ vision/
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "main"'
@@ -41,7 +42,7 @@ lint:python:
 
 test:backend:
   stage: test
-  image: python:3.14.2-slim
+  image: python:3.14.5-slim
   variables:
     UV_SYSTEM_PYTHON: "1"
     CI: "true"
@@ -80,77 +81,100 @@ test:backend:
 # STAGE 3: BUILD - Docker image builds
 # ====================================
 
-# Test builds (no push) - runs on develop and MRs to verify Docker builds work
+# Test builds (no push) - runs on MRs to verify Docker builds work
 build:backend:test:
   stage: build
   image: docker:latest
   services:
     - docker:dind
   script:
-    # Build only - no push to verify Dockerfile works
-    - docker build -f backend/Dockerfile -t arc-backend:test .
-  after_script:
-    - docker images
+    - docker build -f backend/Dockerfile -t echo-backend:test .
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-    - if: '$CI_COMMIT_BRANCH == "main"'
 
-
-build:ai:test:
+build:frontend:test:
   stage: build
   image: docker:latest
   services:
     - docker:dind
   script:
-    # Build only - no push to verify Dockerfile works
-    - docker build -f ai/Dockerfile -t arc-ai:test .
-  after_script:
-    - docker images
+    - docker build -f frontend/Dockerfile -t echo-frontend:test ./frontend
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# Development builds (with push) - validates full build+push pipeline
+# Auto-triggers on merge commits to develop; manual option during MRs targeting develop
+
+build:backend:dev:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+  script:
+    - docker build -f backend/Dockerfile -t echo-backend:dev .
+    - docker tag echo-backend:dev $DOCKERHUB_USERNAME/echo-backend:dev
+    - docker push $DOCKERHUB_USERNAME/echo-backend:dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop" && $CI_COMMIT_TITLE =~ /^Merge branch/'
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
+      when: manual
+
+build:frontend:dev:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+  script:
+    - docker build -f frontend/Dockerfile -t echo-frontend:dev ./frontend
+    - docker tag echo-frontend:dev $DOCKERHUB_USERNAME/echo-frontend:dev
+    - docker push $DOCKERHUB_USERNAME/echo-frontend:dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop" && $CI_COMMIT_TITLE =~ /^Merge branch/'
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
+      when: manual
 
 # Production builds (with push) - runs on main branch only
+# Pushes to Docker Hub with latest + CalVer + commit SHA tags
+
 build:backend:push:
   stage: build
   image: docker:latest
   services:
     - docker:dind
   before_script:
-    # Login to Docker Hub (requires DOCKERHUB_USERNAME and DOCKERHUB_TOKEN variables in GitLab)
     - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
   script:
-    # Build and push to Docker Hub
-    - docker build -f backend/Dockerfile -t $DOCKERHUB_USERNAME/arc-backend:latest .
-    - docker tag $DOCKERHUB_USERNAME/arc-backend:latest $DOCKERHUB_USERNAME/arc-backend:$CI_COMMIT_SHORT_SHA
-    - docker push $DOCKERHUB_USERNAME/arc-backend:latest
-    - docker push $DOCKERHUB_USERNAME/arc-backend:$CI_COMMIT_SHORT_SHA
-  after_script:
-    - docker images
+    - docker build -f backend/Dockerfile -t echo-backend .
+    - docker tag echo-backend $DOCKERHUB_USERNAME/echo-backend:latest
+    - docker tag echo-backend $DOCKERHUB_USERNAME/echo-backend:$ECHO_VERSION
+    - docker tag echo-backend $DOCKERHUB_USERNAME/echo-backend:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKERHUB_USERNAME/echo-backend:latest
+    - docker push $DOCKERHUB_USERNAME/echo-backend:$ECHO_VERSION
+    - docker push $DOCKERHUB_USERNAME/echo-backend:$CI_COMMIT_SHORT_SHA
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_TITLE =~ /^Merge branch.*develop.*into main/'
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "develop"'
       when: manual
 
-
-build:ai:push:
+build:frontend:push:
   stage: build
   image: docker:latest
   services:
     - docker:dind
   before_script:
-    # Login to Docker Hub
     - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
   script:
-    # Build and push to Docker Hub
-    - docker build -f ai/Dockerfile -t $DOCKERHUB_USERNAME/arc-ai:latest .
-    - docker tag $DOCKERHUB_USERNAME/arc-ai:latest $DOCKERHUB_USERNAME/arc-ai:$CI_COMMIT_SHORT_SHA
-    - docker push $DOCKERHUB_USERNAME/arc-ai:latest
-    - docker push $DOCKERHUB_USERNAME/arc-ai:$CI_COMMIT_SHORT_SHA
-  after_script:
-    - docker images
+    - docker build -f frontend/Dockerfile -t echo-frontend ./frontend
+    - docker tag echo-frontend $DOCKERHUB_USERNAME/echo-frontend:latest
+    - docker tag echo-frontend $DOCKERHUB_USERNAME/echo-frontend:$ECHO_VERSION
+    - docker tag echo-frontend $DOCKERHUB_USERNAME/echo-frontend:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKERHUB_USERNAME/echo-frontend:latest
+    - docker push $DOCKERHUB_USERNAME/echo-frontend:$ECHO_VERSION
+    - docker push $DOCKERHUB_USERNAME/echo-frontend:$CI_COMMIT_SHORT_SHA
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_TITLE =~ /^Merge branch.*develop.*into main/'
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "develop"'

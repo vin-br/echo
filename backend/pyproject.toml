@@ -1,31 +1,34 @@
 [project]
-name = "arc-backend"
-version = "0.1.0"
-description = "Backend for ARC"
+name = "echo-backend"
+version = "26.05.2"
+description = "Backend for ECHO"
 authors = [{name = "Vincent Boettcher", email = "vin.br@runbox.no"}]
-requires-python = "==3.14.2"
+requires-python = ">=3.14"
 dependencies = [
-    "fastapi>=0.124.4",
-    "uvicorn>=0.38.0",
-    "jinja2>=3.1.6",
-    "pillow>=12.0.0",
-    "torch>=2.9.1",
-    "torchvision>=0.24.1",
-    "python-multipart>=0.0.20",
-    "polars>=1.36.1",
-    "duckdb>=1.4.3",
+    "fastapi>=0.136.1",
+    "uvicorn>=0.47.0",
+    "pillow>=12.2.0",
+    "torch>=2.12.0",
+    "torchvision>=0.27.0",
+    "python-multipart>=0.0.29",
+    "duckdb>=1.5.3",
+    "opencv-python-headless>=4.13.0.92",
+    "ultralytics>=8.4.52",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest>=9.0.2",
-    "pytest-cov>=7.0.0",
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
     "httpx>=0.28.1",
-    "ruff>=0.14.8",
+    "ruff>=0.15.13",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = [".."]
+
+[tool.coverage.html]
+directory = "htmlcov"
 
 [build-system]
 requires = ["hatchling"]
@@ -33,3 +36,24 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.uv]
+# ultralytics pulls in opencv-python (GUI build) as a transitive dep, which
+# overwrites the headless cv2 binary and requires X11 libs unavailable in CI
+# and headless Docker environments. This override makes opencv-python never
+# resolve, leaving opencv-python-headless as the sole cv2 provider.
+override-dependencies = [
+    "opencv-python; python_version < '0'",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]

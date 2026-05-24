@@ -1,34 +1,28 @@
-"""FastAPI Back-end"""
+"""FastAPI Back-end — API"""
 
 import os
+import time
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from fastapi import FastAPI, File, Request, UploadFile, HTTPException
-from fastapi.responses import HTMLResponse, Response
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import Response
 
-from shared.paths import (
+from backend.app.paths import (
     MODEL_PATH,
-    STATIC_DIR,
-    TEMPLATES_DIR,
     RESULTS_DIR,
     BACKEND_DATA_DIR,
     verify_paths,
 )
 from backend.app.inference import predict_image
+from backend.app.detection import detect_and_annotate
 from backend.app.database import MetricsDatabase
 
-# Verify necessary paths exist from modules package
-# Skip file verification in CI environment where models don't exist
+# Verify necessary paths exist
 verify_paths(skip_files=os.getenv("CI") is not None)
 
-# Initialize Jinja2 templates
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-
 # Global database instance
-database: Optional[MetricsDatabase] = None
+database: MetricsDatabase | None = None
 
 
 # Lifespan event to load the model at startup
@@ -55,43 +49,31 @@ async def lifespan(_: FastAPI):
 
 # Create FastAPI app with lifespan event
 app = FastAPI(
-    title="AI Radiology Copilot - ARC API",
-    description="API for an AI assistant to classify brain tumor images using deep learning models",
-    version="1.0.0",
+    title="ECHO API",
+    description="API to detect, classify, and annotate brain tumor images using deep learning models",
+    version="26.05.2",
     docs_url="/docs",  # Swagger UI
     lifespan=lifespan,
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # enforce 25 MB cap
 
 
-MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # enforce 25 MB cap without middleware
-
-
-def _base_context(request: Request, **overrides: Any) -> Dict[str, Any]:
-    context = {
-        "request": request,
-        "prediction": None,
-        "probability": None,
-        "prediction_made": False,
-        "annotated_image": None,
-        "yolo": False,
-        "messages": [],
-        "uploaded_filename": None,
-        "uploaded_image": None,
-    }
-    context.update(overrides)
-    return context
-
-
-def _message(text: str, level: str = "info") -> Dict[str, str]:
-    return {"text": text, "level": level}
+async def _read_upload(file: UploadFile) -> bytes:
+    """Read and validate an uploaded file (shared by predict + detect)."""
+    file_bytes = await file.read()
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+    if len(file_bytes) == 0:
+        raise HTTPException(status_code=400, detail="The uploaded file was empty")
+    if len(file_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail="Image exceeds the 25 MB limit")
+    return file_bytes
 
 
 # Health check endpoint
 @app.get("/healthz")
-async def healthz() -> Dict[str, str]:
+async def healthz() -> dict[str, str]:
     """Health check endpoint for Docker healthcheck."""
     return {"status": "ok"}
 
@@ -102,66 +84,82 @@ async def _favicon() -> Response:
     return Response(status_code=204)
 
 
-# Define root endpoint
-@app.get("/", response_class=HTMLResponse)
-async def read_index(request: Request) -> HTMLResponse:
-    """Render the landing page with placeholder context."""
-
-    context = _base_context(request)
-    return templates.TemplateResponse(request, "index.html", context)
-
-
-@app.post("/", response_class=HTMLResponse)
-async def classify_image(request: Request, file1: UploadFile = File(...)) -> HTMLResponse:
-    """Accept an uploaded image and display the model prediction."""
-
-    file_bytes = await file1.read()
-    messages: List[Dict[str, str]] = []
-    if not file1.filename:
-        messages.append(_message("Please select an image before submitting.", "error"))
-    elif len(file_bytes) == 0:
-        messages.append(_message("The uploaded file was empty.", "error"))
-    elif len(file_bytes) > MAX_UPLOAD_BYTES:
-        messages.append(_message("Image exceeds the 25 MB limit.", "error"))
-    if messages:
-        context = _base_context(
-            request,
-            messages=messages,
-            uploaded_filename=file1.filename,
-        )
-        return templates.TemplateResponse(request, "index.html", context)
+@app.post("/api/predict")
+async def predict(file1: UploadFile = File(...)) -> dict[str, Any]:
+    """Accept an uploaded image and return the model prediction as JSON."""
+    file_bytes = await _read_upload(file1)
 
     try:
-        prediction = predict_image(file_bytes, MODEL_PATH)
+        start = time.perf_counter()
+        result = predict_image(file_bytes, MODEL_PATH)
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        if database is not None:
+            database.record_latency(elapsed_ms)
     except ValueError as exc:
-        context = _base_context(
-            request,
-            messages=[_message(str(exc), "error")],
-            uploaded_filename=file1.filename,
-        )
-        return templates.TemplateResponse(request, "index.html", context)
+        raise HTTPException(status_code=422, detail=str(exc))
 
-    import base64
-    uploaded_image_b64 = base64.b64encode(file_bytes).decode("utf-8")
-    success_message = _message("Prediction completed", "success")
-    context = _base_context(
-        request,
-        prediction=prediction["display_label"],
-        probability=prediction["confidence"],
-        prediction_made=True,
-        messages=[success_message],
-        uploaded_filename=file1.filename,
-        uploaded_image=uploaded_image_b64,
-    )
-    return templates.TemplateResponse(request, "index.html", context)
+    return {
+        "prediction": result["display_label"],
+        "confidence": result["confidence"],
+        "inference_ms": round(elapsed_ms, 1),
+    }
+
+
+@app.get("/api/latency")
+async def get_latency() -> dict[str, Any]:
+    """Return rolling average inference latency from recent predictions."""
+    if database is None:
+        return {"avg_ms": None, "count": 0}
+    return database.get_latency()
+
+
+@app.post("/api/detect")
+async def detect(file1: UploadFile = File(...)) -> dict[str, Any]:
+    """Classify tumour type and annotate detected regions on the image."""
+    file_bytes = await _read_upload(file1)
+
+    try:
+        result = predict_image(file_bytes, MODEL_PATH)
+        detection = detect_and_annotate(
+            file_bytes, result["display_label"], result["confidence"]
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    return {
+        "prediction": result["display_label"],
+        "confidence": result["confidence"],
+        **detection,
+    }
 
 
 @app.get("/api/metrics")
-async def get_metrics() -> List[Dict[str, Any]]:
+async def get_metrics() -> list[dict[str, Any]]:
     """Generic metrics endpoint (same data as /api/metrics for now)."""
     if database is None:
         raise HTTPException(status_code=503, detail="Database not initialized")
     return database.get_metrics()
+
+
+@app.get("/api/plots")
+async def list_plots() -> list[str]:
+    """Return available training-curve plot names."""
+    plots_dir = RESULTS_DIR / "plots"
+    if not plots_dir.is_dir():
+        return []
+    return sorted(p.stem for p in plots_dir.glob("*.html") if not p.stem.endswith("-cm"))
+
+
+@app.get("/api/plots/{name}")
+async def get_plot(name: str) -> Response:
+    """Serve a training-curve plot as HTML."""
+    # Sanitise: only allow filename-safe characters
+    if not all(c.isalnum() or c in "-_" for c in name):
+        raise HTTPException(status_code=400, detail="Invalid plot name")
+    plot_path = RESULTS_DIR / "plots" / f"{name}.html"
+    if not plot_path.is_file():
+        raise HTTPException(status_code=404, detail="Plot not found")
+    return Response(content=plot_path.read_text(encoding="utf-8"), media_type="text/html")
 
 
 # Run the app with Uvicorn if executed directly
