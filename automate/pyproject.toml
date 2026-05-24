@@ -1,7 +1,7 @@
 [project]
-name = "arc-automate"
-version = "26.05.1"
-description = "ARC Screenshot and GIF automation for documentation"
+name = "echo-automate"
+version = "26.05.2"
+description = "ECHO Screenshot and GIF automation for documentation"
 authors = [{name = "Vincent Boettcher", email = "vin.br@runbox.no"}]
 requires-python = ">=3.14"
 dependencies = [

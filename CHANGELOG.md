@@ -2,9 +2,42 @@
 
 ---
 
-Summary of changes made to the Arc project.
+Summary of changes made to the Echo project.
 
 Versioning follows CalVer: `YY.MM.PATCH` — where `YY.MM` reflects when the work was done and `PATCH` is incremented for each subsequent release within the same month.
+
+## [26.05.2] - 2026-05-24
+
+### Added
+- `vision/detection/` package: YOLOv8 fine-tuning engine and CLI (`ultralytics`).
+- Optuna hyperparameter search as the default classification training pipeline — searches `lr` and `batch_size`; explicit `--lr` + `--batch-size` args skip the search.
+- `automate/`: carousel GIF generation, leaderboard screenshot target, plot regeneration on startup.
+- `scripts/enhance_dataset.py`: dataset balancing pipeline (perceptual dedup, quality filtering, augmentation).
+- Three new classification architectures: Swin-V2-T, MaxViT-T, ConvNeXt-Small.
+- Root `pyproject.toml` aggregating all subpackage dependencies for single-install dev setup.
+
+### Changed
+- Restructured `vision/` into `classification/`, `detection/`, and `common/` subpackages.
+- Moved shared modules (`config.py`, `paths.py`, `visualize.py`) into `vision/common/`.
+- Reorganized `data/` into `data/classification/` (tracked) and `data/detection/` (gitignored, downloadable).
+- Merged leaderboard and training curves into a single "Transparency" section in the frontend.
+- Leaderboard card: single overview with Test Accuracy, Test Recall, and Test Macro F1 columns.
+- Docker Compose dev: bind mounts replace named `results` volume.
+- Detection model downloads to `models/detection/` instead of working directory.
+- Backend Dockerfile: copies detection model checkpoint at build time.
+- Plot filenames: replaced dots in learning rate notation with underscores (`8_823e-3` instead of `8.823e-3`) to avoid filename issues.
+- License changed from MPL 2.0 to Apache 2.0.
+- GitHub Copilot instructions added.
+- CI/CD: use `CI_JOB_TOKEN` for GitLab Container Registry auth.
+- Version bump to `26.05.2`.
+
+### Removed
+- `--tune` flag from classification CLI (Optuna is now the default; no flag needed).
+- `vision/classification/evaluate.py` — dead code, never imported.
+- `confusion_matrix_count_plot` and `confusion_matrix_distrib_plot` from `vision/visualize.py` — unused.
+- `k8s/vision-deployment.yaml` and `k8s/vision-service.yaml` — vision runs now as a batch job, not a service.
+- `scripts/find_duplicates.py` and `scripts/rename_files.py` — functionality subsumed by `enhance_dataset.py`.
+
 
 ## [26.05.1] - 2026-05-21
 

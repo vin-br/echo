@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.14"
 
 [[package]]
-name = "arc-automate"
+name = "echo-automate"
 version = "26.5.1"
 source = { editable = "." }
 dependencies = [

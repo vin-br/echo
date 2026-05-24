@@ -7,6 +7,10 @@
 	let fileName = $state<string | null>(null);
 	let analyzing = $state(false);
 	let prediction = $state<{ label: string; confidence: number } | null>(null);
+	let detecting = $state(false);
+	let annotatedImage = $state<string | null>(null);
+	let detectionMethod = $state<string | null>(null);
+	let activePlot = $state(0);
 
 	type Toast = { message: string; type: 'success' | 'error' | 'info' } | null;
 	let toast = $state<Toast>(null);
@@ -18,6 +22,8 @@
 		if (file) {
 			fileName = file.name;
 			prediction = null;
+			annotatedImage = null;
+			detectionMethod = null;
 			const reader = new FileReader();
 			reader.onload = () => {
 				preview = reader.result as string;
@@ -33,6 +39,8 @@
 		preview = null;
 		fileName = null;
 		prediction = null;
+		annotatedImage = null;
+		detectionMethod = null;
 		const input = document.getElementById('file-input') as HTMLInputElement;
 		if (input) input.value = '';
 		dismissToast();
@@ -47,38 +55,69 @@
 	function dismissToast() {
 		toast = null;
 	}
+
+	async function handleDetect() {
+		const input = document.getElementById('file-input') as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+
+		detecting = true;
+		const formData = new FormData();
+		formData.append('file1', file);
+
+		try {
+			const res = await fetch('/api/detect', { method: 'POST', body: formData });
+			if (res.ok) {
+				const data = await res.json();
+				annotatedImage = `data:image/png;base64,${data.annotated_image}`;
+				detectionMethod = data.method;
+				if (data.message) {
+					showToast(data.message, 'info');
+				} else {
+					showToast(`Detection complete — ${data.detections} region(s) found`, 'success');
+				}
+			} else {
+				showToast('Detection failed', 'error');
+			}
+		} catch {
+			showToast('Detection failed', 'error');
+		} finally {
+			detecting = false;
+		}
+	}
 </script>
 
 <header>
 	<div class="header-content">
-		<h1><a href="/">ARC</a></h1>
+		<h1><a href="/">ECHO</a></h1>
 	</div>
 </header>
 
 <main>
 	<section class="hero-shell">
 		<div class="hero-content">
-			<p class="eyebrow">augment, recognize, classify</p>
+			<p class="eyebrow">detect, classify, annotate</p>
 			<h2>Support tool. Pre-screen only.</h2>
-			<p class="hero-lede">Upload a brain MRI — ARC returns a prediction with a confidence score.</p>
+			<p class="hero-lede">Upload a brain MRI — ECHO returns a prediction with a confidence score.</p>
 			<div class="hero-highlights">
 				<span class="highlight-chip">ConvNeXt Model</span>
 				<span class="highlight-chip">Prediction</span>
 				<span class="highlight-chip">Confidence Score</span>
+				<span class="highlight-chip">YOLO Detection</span>
 				<span class="highlight-chip">Models Leaderboard</span>
-				<span class="highlight-chip">YOLO Labeling - coming soon</span>
+				<span class="highlight-chip">Training Curves</span>
 			</div>
 			<div class="hero-metrics">
 				<article>
 					<span class="metric-value"
 						>{data.latency?.avg_ms != null
 							? `${data.latency.avg_ms} ms`
-							: '~32 ms'}</span
+							: '—'}</span
 					>
 					<span class="metric-label"
 						>Avg. inference{data.latency?.count
 							? ` · last ${data.latency.count}`
-							: ''}</span
+							: ' · no data yet'}</span
 					>
 				</article>
 				<article>
@@ -130,6 +169,8 @@
 										<span class="drop-main">Select or drop your image</span>
 										<span class="drop-sub">Max 25&nbsp;MB · PNG/JPG</span>
 									</label>
+								{:else if annotatedImage}
+									<img src={annotatedImage} class="preview-image" alt="Annotated detection" />
 								{:else}
 									<img src={preview} class="preview-image" alt="Uploaded preview" />
 								{/if}
@@ -166,33 +207,51 @@
 										{/if}
 									</span>
 								</div>
+								<div class="status-item">
+									<span class="status-label">Detection</span>
+									<span class="status-value">
+										{#if detecting}
+											Detecting...
+										{:else if detectionMethod}
+											{detectionMethod === 'yolo' ? 'YOLO' : detectionMethod === 'opencv' ? 'OpenCV' : '—'}
+										{:else}
+											—
+										{/if}
+									</span>
+								</div>
 							</div>
 						</div>
 					</div>
-					{#if fileName}
-						<div class="button-group">
-							<button class="primary-action" type="submit" disabled={analyzing}>
-								{analyzing ? 'Analyzing...' : 'Ask ARC'}
+				{#if fileName}
+					<div class="button-group">
+						{#if prediction}
+							<button class="primary-action" type="button" onclick={handleDetect} disabled={detecting}>
+								{detecting ? 'Detecting...' : 'Detect & Annotate'}
 							</button>
-							<button class="secondary-action" type="button" onclick={clearAll}>Clear</button>
-						</div>
-					{/if}
+						{:else}
+							<button class="primary-action" type="submit" disabled={analyzing || detecting}>
+								{analyzing ? 'Analyzing...' : 'Ask ECHO'}
+							</button>
+						{/if}
+						<button class="secondary-action" type="button" onclick={clearAll}>Clear</button>
+					</div>
+				{/if}
 				</form>
 			</div>
 		</div>
 	</section>
 
-	<section class="leaderboard-section">
-		<div class="leaderboard-header">
-			<h2>Model Transparency.</h2>
+	<section class="transparency-section">
+		<div class="transparency-header">
+			<h2>Transparency</h2>
 			<p class="section-subtitle">
-				All models trained on the same dataset with different architectures and hyperparameters.
+				Every model tested is shown here with its real scores. The best-performing architecture is selected for production — no cherry-picking, no hidden results.
 			</p>
 		</div>
-		<div class="card">
+		<div class="card leaderboard-card">
 			<div class="card-header">
 				<div>
-					<h3>Training Leaderboard</h3>
+					<h3>Models Leaderboard</h3>
 					<p class="card-subtitle">Ranked by test accuracy on held-out data</p>
 				</div>
 			</div>
@@ -206,10 +265,11 @@
 								<th>Rank</th>
 								<th>Model</th>
 								<th>Test Accuracy</th>
+								<th>Test Recall</th>
+								<th>Test Macro F1</th>
 								<th>Val Accuracy</th>
 								<th>Batch Size</th>
 								<th>Learning Rate</th>
-								<th>Epochs</th>
 								<th>Best Epoch</th>
 							</tr>
 						</thead>
@@ -219,10 +279,11 @@
 									<td class="rank-cell">{index + 1}</td>
 									<td class="model-cell">{row.model}</td>
 									<td class="acc-cell">{(row.test_acc * 100).toFixed(2)}%</td>
+									<td class="recall-cell">{row.macro_recall != null ? (row.macro_recall * 100).toFixed(2) + '%' : '—'}</td>
+									<td class="f1-cell">{row.macro_f1 != null ? (row.macro_f1 * 100).toFixed(2) + '%' : '—'}</td>
 									<td>{(row.val_acc * 100).toFixed(2)}%</td>
 									<td>{row.batch_size}</td>
 									<td>{row.lr.toExponential(1)}</td>
-									<td>{row.epochs}</td>
 									<td>{row.best_epoch}</td>
 								</tr>
 							{/each}
@@ -231,6 +292,39 @@
 				{/if}
 			</div>
 		</div>
+
+		{#if data.plots && data.plots.length > 0}
+			<div class="card curves-card">
+				<div class="card-header">
+					<div>
+						<h3>Training Curves</h3>
+						<p class="card-subtitle">Accuracy over epochs — how each model learned</p>
+					</div>
+				</div>
+				<div class="carousel">
+					<div class="carousel-nav">
+						{#each data.plots as plotName, i}
+							<button
+								class="card-tab"
+								class:active={activePlot === i}
+								type="button"
+								onclick={() => (activePlot = i)}
+							>
+								{plotName.replace(/-b\d+.*$/, '').replace(/-/g, ' ')}
+								<span class="tab-detail">{plotName.replace(/^.*?-b/, 'b').replace(/-img.*$/, '')}</span>
+							</button>
+						{/each}
+					</div>
+					<div class="carousel-frame">
+						<iframe
+							src="/api/plots/{data.plots[activePlot]}"
+							title="Training curves for {data.plots[activePlot]}"
+							sandbox="allow-scripts"
+						></iframe>
+					</div>
+				</div>
+			</div>
+		{/if}
 	</section>
 </main>
 
@@ -247,10 +341,10 @@
 
 <footer>
 	<div class="social-links">
-		<a href="https://gitlab.com/vin-br/arc" aria-label="GitLab">
+		<a href="https://gitlab.com/vin-br/echo" aria-label="GitLab">
 			<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="m23.6 9.593-.033-.086L20.3.98a.851.851 0 0 0-.336-.382.86.86 0 0 0-.994.056.86.86 0 0 0-.29.412l-2.204 6.748H7.528L5.324 1.066a.86.86 0 0 0-.29-.416.856.856 0 0 0-.994-.056.85.85 0 0 0-.336.384L.437 9.502l-.034.087a6.07 6.07 0 0 0 2.012 7.01l.01.008.028.02 4.97 3.722 2.458 1.86 1.496 1.13a1.01 1.01 0 0 0 1.22 0l1.496-1.13 2.458-1.86 5-3.744.012-.01a6.073 6.073 0 0 0 2.008-7.002z"/></svg>
 		</a>
-		<a href="https://github.com/vin-br/arc" aria-label="GitHub">
+		<a href="https://github.com/vin-br/echo" aria-label="GitHub">
 			<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
 		</a>
 		<a href="https://hub.docker.com/u/vinbr" aria-label="Docker Hub">
@@ -259,7 +353,7 @@
 		<a href="https://www.linkedin.com/in/vin-br/" aria-label="LinkedIn">
 			<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
 		</a>
-		<a href="https://www.mozilla.org/en-US/MPL/2.0/" aria-label="License"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></a>
+		<a href="https://www.apache.org/licenses/LICENSE-2.0" aria-label="License"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></a>
 	</div>
 	<p>Vincent Boettcher</p>
 </footer>

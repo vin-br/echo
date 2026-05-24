@@ -1,6 +1,6 @@
-# ARC Infrastructure as Code (IaC)
+# ECHO Infrastructure as Code (IaC)
 
-Provision the ARC backend inside a Docker container using Ansible — no VMs, no SSH.
+Provision the ECHO backend inside a Docker container using Ansible — no VMs, no SSH.
 
 ## How it works
 
@@ -50,9 +50,9 @@ brew install ansible  # macOS
 ## Checking the application
 
 ```bash
-docker exec arc-target cat /var/log/arc-backend.log   # View logs
-docker exec -it arc-target bash                       # Interactive shell
-docker ps -f name=arc-target                          # Check status
+docker exec echo-target cat /var/log/echo-backend.log   # View logs
+docker exec -it echo-target bash                       # Interactive shell
+docker ps -f name=echo-target                          # Check status
 ```
 
 ## Troubleshooting

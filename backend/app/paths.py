@@ -7,9 +7,10 @@ BACKEND_DIR = _APP_DIR.parent
 PROJECT_ROOT = BACKEND_DIR.parent
 
 BACKEND_DATA_DIR = BACKEND_DIR / "data"
+BACKEND_DATA_DIR.mkdir(exist_ok=True)
 
 MODELS_DIR = PROJECT_ROOT / "models"
-MODEL_PATH = MODELS_DIR / "convnext-tiny-b16-img224-e60-lr-5e-4.pt"
+MODEL_PATH = MODELS_DIR / "classification" / "convnext-tiny-b16-img224-e150-lr-8_823e-3.pt"
 
 VISION_DIR = PROJECT_ROOT / "vision"
 RESULTS_DIR = VISION_DIR / "results"

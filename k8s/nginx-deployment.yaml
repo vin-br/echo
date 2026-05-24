@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: arc-nginx
-  namespace: arc
+  name: echo-nginx
+  namespace: echo
   labels:
-    app: arc-nginx
+    app: echo-nginx
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: arc-nginx
+      app: echo-nginx
   template:
     metadata:
       labels:
-        app: arc-nginx
+        app: echo-nginx
     spec:
       containers:
       - name: nginx
@@ -34,4 +34,4 @@ spec:
       volumes:
       - name: nginx-config
         configMap:
-          name: arc-nginx-config
+          name: echo-nginx-config

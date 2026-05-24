@@ -18,11 +18,6 @@ CLASS_LABELS = (
 NUM_CLASSES = len(CLASS_LABELS)
 
 MODEL_REGISTRY = {
-    "resnet50": {
-        "factory": models.resnet50,
-        "weights": models.ResNet50_Weights.IMAGENET1K_V2,
-        "head_path": ("fc",),
-    },
     "mobilenet-v3-large": {
         "factory": models.mobilenet_v3_large,
         "weights": models.MobileNet_V3_Large_Weights.IMAGENET1K_V1,
@@ -32,5 +27,25 @@ MODEL_REGISTRY = {
         "factory": models.convnext_tiny,
         "weights": models.ConvNeXt_Tiny_Weights.IMAGENET1K_V1,
         "head_path": ("classifier", 2),
+    },
+    "convnext-small": {
+        "factory": models.convnext_small,
+        "weights": models.ConvNeXt_Small_Weights.IMAGENET1K_V1,
+        "head_path": ("classifier", 2),
+    },
+    "efficientnet-v2-s": {
+        "factory": models.efficientnet_v2_s,
+        "weights": models.EfficientNet_V2_S_Weights.IMAGENET1K_V1,
+        "head_path": ("classifier", 1),
+    },
+    "swin-v2-t": {
+        "factory": models.swin_v2_t,
+        "weights": models.Swin_V2_T_Weights.IMAGENET1K_V1,
+        "head_path": ("head",),
+    },
+    "maxvit-t": {
+        "factory": models.maxvit_t,
+        "weights": models.MaxVit_T_Weights.IMAGENET1K_V1,
+        "head_path": ("classifier", 5),
     },
 }

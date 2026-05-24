@@ -15,6 +15,9 @@ COPY --from=build /app/package.json .
 ENV NODE_ENV=production
 EXPOSE 3000
 
+# Non-root user (bun image includes 'bun' user)
+USER bun
+
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD bun -e "const r = await fetch('http://localhost:3000'); if (!r.ok) process.exit(1)" || exit 1
 

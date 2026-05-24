@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: arc-nginx-config
-  namespace: arc
+  name: echo-nginx-config
+  namespace: echo
 data:
   default.conf: |
     upstream frontend {
-        server arc-frontend:3000;
+        server echo-frontend:3000;
     }
 
     upstream backend {
-        server arc-backend:8000;
+        server echo-backend:8000;
     }
 
     server {
